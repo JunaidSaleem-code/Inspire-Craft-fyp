@@ -1,7 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { connectToDatabase } from "./db";
+import { connectDB } from "./db";
 import UserModel from "../models/User";
 
 export const authOptions: NextAuthOptions = {
@@ -18,7 +18,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          await connectToDatabase();
+          await connectDB();
           const user = await UserModel.findOne({ email: credentials.email });
 
           if (!user) {
