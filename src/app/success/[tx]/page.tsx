@@ -1,4 +1,4 @@
-// "use client";
+"use client";
 
 // import { Button } from "@/components/ui/button";
 // import { apiClient } from "@/lib/api-client";
@@ -33,7 +33,7 @@
 //   );
 // }
 import { useEffect, useState } from "react";
-import { useRouter } from 'next/router';
+import {  useSearchParams } from 'next/navigation';
 
 // Define a type for the transaction data
 interface Transaction {
@@ -44,8 +44,8 @@ interface Transaction {
 }
 
 const SuccessPage = () => {
-  const router = useRouter();
-  const { tx } = router.query;  // Access transactionId from the URL
+  const searchParams = useSearchParams();
+  const tx = searchParams.get('tx');  // Access transactionId from the URL
   const [transaction, setTransaction] = useState<Transaction | null>(null);  // Explicitly define the type
 
   useEffect(() => {
