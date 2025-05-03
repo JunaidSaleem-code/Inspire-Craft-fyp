@@ -103,10 +103,10 @@ export default function Header() {
                   <PlusCircle className="w-6 h-6" />
                 </Button>
               </Link>
-              <Link href="/explore" className="flex items-center hover:scale-105 transition">
+              {/* <Link href="/explore" className="flex items-center hover:scale-105 transition">
                 <Search className="w-5 h-5" />
-                {/* <span className="hidden sm:inline">Explore</span> */}
-              </Link>
+              </Link> */}
+             
 
               {/* <Link href="/notifications"   className="flex items-center  hover:scale-105 transition">
                 <Bell className="w-5 h-5" />

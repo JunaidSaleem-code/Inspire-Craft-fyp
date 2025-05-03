@@ -32,7 +32,7 @@ export const apiClient = {
 
   // User Management
   getUserById: async (userId: string) => request("GET", `/api/users/${userId}`),
-  updateUser: async (userId: string, userData: any) => request("PUT", `/api/users/${userId}`, userData),
+  updateUser: async (userId: string, userData: any) => request("PATCH", `/api/users/${userId}`, userData),
   deleteUser: async (userId: string) => request("DELETE", `/api/users/${userId}`),
   toggleFollow: async (userId: string) => request("POST", `/api/users/${userId}/toggle-follow`),
 
@@ -96,7 +96,10 @@ getAiImagesByUser: async (userId: string) => request("GET", `/api/ai-images/user
   // Artworks
   getArtworks: async () => request("GET", "/api/artwork"),
   getArtworkById: async (artworkId: string) => request("GET", `/api/artwork/${artworkId}`),
-  buyArtwork: async (artworkId: string) => request("POST", `/api/artwork/${artworkId}/buy`),
+  buyArtworkById: async (artworkId: string) =>
+    request("POST", `/api/create-checkout-session/${artworkId}`),
+  markArtworkAsSold: async (artworkId: string) => request("PATCH", `/api/artwork/${artworkId}/mark-sold`),
+  
   
   commentOnArtwork: async (artworkId: string, comment: string, parentId?: string) =>
     request("POST", `/api/artwork/${artworkId}/comment`, { comment, parentId }),

@@ -50,15 +50,17 @@ const PostList = () => {
   }
 
   return (
-    <div>
-      {posts.length === 0 ? (
-        <p>No posts available.</p>
-      ) : (
-        posts.map((post) => (
-          <PostCard key={post._id?.toString()} post={post}  />
-        ))
-      )}
-    </div>
+    <div className='bg-gray-100'>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 m-4 ">
+  {posts.length === 0 ? (
+    <p className="text-center col-span-full text-gray-500">No posts available.</p>
+  ) : (
+    posts.map((post) => (
+      <PostCard key={post._id?.toString()} post={post} />
+    ))
+  )}
+</div>
+</div>
   );
 };
 

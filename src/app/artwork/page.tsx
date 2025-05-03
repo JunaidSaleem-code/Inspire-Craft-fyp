@@ -25,7 +25,7 @@ export default function ArtworksPage() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 bg-gray-100">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -37,18 +37,19 @@ export default function ArtworksPage() {
       </motion.div>
 
       {/* Artworks Section */}
-      <section className="w-full max-w-2xl mx-auto space-y-8 py-8">
-        {artworks.map((artwork) => (
-          <motion.div
-            key={artwork._id?.toString()}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <ArtworkCard artwork={artwork} />
-          </motion.div>
-        ))}
-      </section>
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+  {artworks.map((artwork) => (
+    <motion.div
+      key={artwork._id?.toString()}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <ArtworkCard artwork={artwork} />
+    </motion.div>
+  ))}
+</section>
+
     </div>
   );
 }

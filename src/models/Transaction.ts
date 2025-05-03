@@ -34,7 +34,7 @@ const transactionSchema = new Schema<ITransaction>(
 );
 
 // 🔹 Unique index to prevent duplicate transactions
-transactionSchema.index({ buyer: 1, artwork: 1, paymentStatus: 1 }, { unique: true });
+// transactionSchema.index({ buyer: 1, artwork: 1, paymentStatus: 1 }, { unique: true });
 
 const Transaction = models?.Transaction || model<ITransaction>("Transaction", transactionSchema);
 export default Transaction;

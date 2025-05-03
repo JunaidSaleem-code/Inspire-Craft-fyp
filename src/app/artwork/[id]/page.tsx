@@ -12,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 import LikesDropdown from '@/components/LikeDropdown';
 import { useNotification } from '@/components/Notification';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function ArtworkDetail() {
   const router = useRouter();
@@ -104,6 +105,25 @@ export default function ArtworkDetail() {
   }
 
   if (!artwork) return <div className="text-center mt-10">Artwork not found.</div>;
+
+  const buyArtwork = async () => {
+    if (!artwork || !artwork._id) return;
+  
+    try {
+      console.log('artwork._id', artwork._id);
+      console.log(typeof artwork._id);
+      const response = await apiClient.buyArtworkById(artwork._id);
+      console.log('response', response);
+      if (response?.url) {
+        window.location.href = response.url; // redirect to Stripe checkout
+      } else {
+        showNotification("Stripe session failed", "error");
+      }
+    } catch (error) {
+      showNotification("Buy failed", "error");
+    }
+  };
+  
 
   return (
     <div className="bg-white shadow-xl rounded-xl overflow-hidden max-w-2xl mx-auto mt-2 border mb-11">
@@ -200,7 +220,8 @@ export default function ArtworkDetail() {
           {artwork.price} {artwork.currency}
         </div>
 
-        {artwork.isSold && <p className="text-red-600 font-medium">Sold</p>}
+        {artwork.isSold? <p className="text-red-600 font-medium">Sold</p> : <Button onClick={buyArtwork}>Buy Now</Button>
+      }
 
 
         {showComments && (

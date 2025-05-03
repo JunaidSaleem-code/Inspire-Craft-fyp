@@ -10,6 +10,8 @@ import ArtworkCard from "@/components/ArtworkCard";
 import PostCard from "@/components/PostCard";
 import TutorialCard from "@/components/TutorialCard";
 import AIImageCard from "@/components/AIImageCard";
+import { Link } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type TabType = "artworks" | "posts" | "tutorials" | "aiImages";
 
@@ -73,7 +75,8 @@ export default function ProfilePage({ params }: { params: { userId?: string } })
     try {
       if(!profileUserId) return;
       let data = [];
-      if (tab === "posts") data = await apiClient.getPostsByUser(profileUserId);
+      if (tab === "posts") {data = await apiClient.getPostsByUser(profileUserId);
+      console.log('data', data);}
       else if (tab === "tutorials") data = await apiClient.getTutorialsByUser(profileUserId);
       else if (tab === "aiImages") data = await apiClient.getAiImagesByUser(profileUserId);
 
@@ -133,6 +136,14 @@ export default function ProfilePage({ params }: { params: { userId?: string } })
                 </button>
               )
               }
+              {isOwnProfile && (
+                <Button
+                  onClick={() => router.push("/profile/edit/" + userProfile?._id)}
+                  className="mt-3 px-4 py-2 rounded-lg text-white font-medium bg-blue-600 hover:bg-blue-700"
+                >
+                  Edit Profile
+                </Button>
+              )}
             </div>
           </div>
         </div>

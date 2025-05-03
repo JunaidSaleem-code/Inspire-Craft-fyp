@@ -101,7 +101,6 @@ export default function TutorialPage() {
           <source src={tutorial.mediaUrl} type="video/mp4" />
         </video>
       </div>
-
       {/* Info Section */}
       <div className="px-6 py-4">
         {/* Header */}

@@ -4,7 +4,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { ITutorial } from '@/models/Tutorial';
 import Link from 'next/link';
-import { Button } from './ui/button';
 
 interface Props {
   tutorial: ITutorial;
@@ -15,7 +14,7 @@ export default function TutorialCard({ tutorial }: Props) {
   return (
     <Link href={`/tutorial/${tutorial._id}`}>
     <Card className="hover:shadow-lg">
-      <CardContent className="p-4">
+      <CardContent >
         <video controls className="w-full max-h-64 rounded-xl shadow">
           <source src={tutorial.mediaUrl} type="video/mp4" />
         </video>
