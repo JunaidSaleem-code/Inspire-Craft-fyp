@@ -6,11 +6,12 @@ import { useSession } from 'next-auth/react';
 import { IKImage, IKVideo } from 'imagekitio-next';
 import { Heart, MessageCircle, Pencil, X, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import { apiClient } from '@/lib/api-client';
+import  {apiClient} from "@/lib/api-client";
 import CommentSection from '@/components/CommentSection';
 import { useNotification } from '@/components/Notification';
+import Image from 'next/image';
+import { Artwork, Like } from '@/app/types/page';
 
-const IMAGEKIT_BASE_URL = process.env.NEXT_PUBLIC_URL_ENDPOINT || '';
 
 export default function ArtworkDetailPage() {
   const params = useParams();
@@ -18,8 +19,8 @@ export default function ArtworkDetailPage() {
   const { data: session } = useSession();
   const router = useRouter();
 
-  const [artwork, setArtwork] = useState<any>(null);
-  const [likes, setLikes] = useState<any[]>([]);
+  const [artwork, setArtwork] = useState<Artwork>();
+  const [likes, setLikes] = useState<Like[]>([]);
   const [loading, setLoading] = useState(true);
   const [liking, setLiking] = useState(false);
   const [showLikesDropdown, setShowLikesDropdown] = useState(false);
@@ -30,19 +31,19 @@ export default function ArtworkDetailPage() {
   useEffect(() => {
     const fetchArtwork = async () => {
       try {
-        const data = await apiClient.getArtworkById(id);
-        const { data: artworkData } = data;
-        setArtwork(artworkData);
-        setLikes(artworkData.likes || []);
-      } catch (err) {
-        console.error('Error fetching artwork:', err);
+        const { artwork, likes } = await apiClient.getArtworkById(id);
+        setArtwork(artwork);
+        setLikes(likes || []);
+      } catch {
+        showNotification('Failed to fetch artwork', 'error');
       } finally {
         setLoading(false);
       }
     };
 
     if (id) fetchArtwork();
-  }, [id]);
+  }, [id, showNotification]);
+
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -60,7 +61,7 @@ export default function ArtworkDetailPage() {
 
   const updateArtwork = async () => {
     try {
-      router.push(`/edit/artwork/${artwork?._id}?category=artwork&fileType=${artwork.mediaType}`);
+      router.push(`/edit/artwork/${artwork?._id}?category=artwork&fileType=${artwork!.mediaType}`);
 
     } catch (err) {
       console.error(err);
@@ -103,7 +104,7 @@ export default function ArtworkDetailPage() {
     }
   };
 
-  if (loading) {
+  if (loading ) {
     return (
       <div className="p-6 animate-pulse max-w-3xl mx-auto">
         <div className="h-[500px] bg-gray-200 rounded-lg" />
@@ -117,7 +118,7 @@ export default function ArtworkDetailPage() {
 
   const isOwner = session?.user?.email === artwork.artist?.email;
   const userHasLiked = Array.isArray(likes) && session?.user?.email
-  ? likes.some((like: any) => like?.user?.email === session.user.email)
+  ? likes.some((like: Like) => like?.user?.email === session.user.email)
   : false;
 
 
@@ -126,7 +127,6 @@ export default function ArtworkDetailPage() {
       <div className="bg-white shadow-md rounded-lg overflow-hidden relative">
         {artwork.mediaType === 'image' ? (
           <IKImage
-            urlEndpoint={IMAGEKIT_BASE_URL}
             path={artwork.mediaUrl.startsWith('http') ? undefined : artwork.mediaUrl}
             src={artwork.mediaUrl.startsWith('http') ? artwork.mediaUrl : undefined}
             alt={artwork.title}
@@ -137,7 +137,6 @@ export default function ArtworkDetailPage() {
           />
         ) : (
           <IKVideo
-            urlEndpoint={IMAGEKIT_BASE_URL}
             src={artwork.mediaUrl}
             width={1080}
             height={1350}
@@ -220,15 +219,15 @@ export default function ArtworkDetailPage() {
                       <div className="h-4 bg-gray-200 rounded w-2/3 animate-pulse" />
                     </div>
                   ) : likes.length > 0 ? (
-                    likes.map((like: any) => (
+                    likes.map((like: Like ) => (
                       <div key={like._id} className="p-2 hover:bg-gray-50">
                         <div className="flex items-center gap-2">
-                          <img
-                            src={like.user?.image || '/default-avatar.png'}
-                            alt={like.user?.name || like.user?.email}
+                          <Image
+                            src={like.user?.avatar || '/default-avatar.png'}
+                            alt={like.user.avatar! || like.user.email!}
                             className="w-6 h-6 rounded-full"
                           />
-                          <span>{like.user?.name || like.user?.email}</span>
+                          <span>{like.user?.username || like.user?.email}</span>
                         </div>
                       </div>
                     ))
@@ -239,14 +238,13 @@ export default function ArtworkDetailPage() {
               )}
             </div>
 
-            <div className="flex items-center gap-2 text-gray-600">
+            <div className="flex items-center gap-2 text-gray-600" >
               <MessageCircle className="w-5 h-5" />
-              {artwork.comments?.length || 0}
             </div>
           </div>
 
           <div className="mt-6">
-            <CommentSection contentId={artwork._id.toString()} category="artwork" />
+            <CommentSection contentId={artwork._id!.toString()} category="artwork" />
           </div>
         </div>
       </div>

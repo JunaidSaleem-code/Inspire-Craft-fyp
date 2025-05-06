@@ -4,18 +4,16 @@ import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { apiClient } from '@/lib/api-client';
-import { IArtwork } from '@/models/Artwork';
-import { ITutorial } from '@/models/Tutorial';
-import { IPost } from '@/models/Post';
+import  {apiClient} from "@/lib/api-client";
 import ArtworkCard from '@/components/ArtworkCard';
 import PostCard from '@/components/PostCard';
 import TutorialCard from '@/components/TutorialCard';
+import { Artwork, Tutorial, Post } from '@/app/types/page';
 
 export default function HomePage() {
-  const [artworks, setArtworks] = useState<IArtwork[]>([]);
-  const [tutorials, setTutorials] = useState<ITutorial[]>([]);
-  const [posts, setPosts] = useState<IPost[]>([]);
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,9 +23,9 @@ export default function HomePage() {
           apiClient.getTutorials(),
           apiClient.getPosts(),
         ]);
-        setArtworks(artworksData?.data || []);
-        setTutorials(tutorialsData?.data || []);
-        setPosts(postsData?.data || []);
+        setArtworks(artworksData || []);
+        setTutorials(tutorialsData || []);
+        setPosts(postsData || []);
       } catch (error) {
         console.error('Error fetching data:', error);
       }

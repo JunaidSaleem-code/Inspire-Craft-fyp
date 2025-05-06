@@ -54,7 +54,7 @@ export async function GET(req: NextRequest, { params }: { params: { category: st
 
     return NextResponse.json({ success: true, comments: Comments, totalCount });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Failed to fetch comments." }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Failed to fetch comments.", error }, { status: 500 });
   }
 }
 

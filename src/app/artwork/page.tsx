@@ -4,18 +4,18 @@
 
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { IArtwork } from '@/models/Artwork';
-import { apiClient } from '@/lib/api-client';
+import  {apiClient} from "@/lib/api-client";
 import ArtworkCard from '@/components/ArtworkCard';
+import { Artwork } from '../types/page';
 
 export default function ArtworksPage() {
-  const [artworks, setArtworks] = useState<IArtwork[]>([]);
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
 
   useEffect(() => {
     const fetchArtworks = async () => {
       try {
         const artworksData = await apiClient.getArtworks();
-        setArtworks(artworksData?.data || []);
+        setArtworks(artworksData);
       } catch (error) {
         console.error('Error fetching artworks:', error);
       }

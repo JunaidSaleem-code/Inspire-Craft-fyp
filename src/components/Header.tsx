@@ -4,15 +4,9 @@ import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
 import {
   Home,
-  Search,
-  Bell,
   PlusCircle,
   User,
   LogOut,
-  BookOpen,
-  Image,
-  BrainCircuit,
-  Brush,
 } from "lucide-react";
 import { useNotification } from "@/components/Notification";
 import { Button } from "@/components/ui/button";

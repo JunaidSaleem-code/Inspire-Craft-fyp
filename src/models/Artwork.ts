@@ -9,7 +9,6 @@ export const ARTWORK_DIMENSIONS = {
 } as const;
 
 export interface IArtwork extends Document {
-  _id?: mongoose.Types.ObjectId;
   artist: mongoose.Types.ObjectId;
   title: string;
   description?: string;

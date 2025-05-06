@@ -29,7 +29,7 @@ export async function PUT(req: NextApiRequest, res: NextApiResponse) {
     return res.status(403).json({ message: "Unauthorized" });
 
   const { email, password } = req.body;
-  let updateData: any = { email };
+  const updateData:{ email: string; password?: string } = { email };
   if (password) updateData.password = await bcrypt.hash(password, 10);
 
   const updatedUser = await User.findByIdAndUpdate(req.query.userId, updateData, { new: true });

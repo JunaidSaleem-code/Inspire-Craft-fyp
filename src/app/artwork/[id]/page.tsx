@@ -1,10 +1,10 @@
 'use client';
 
-import { Heart, MessageCircle, Trash, Pencil, Loader } from 'lucide-react';
+import { Heart, MessageCircle, Trash, Pencil } from 'lucide-react';
 import { IKImage } from 'imagekitio-next';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState,useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { apiClient } from '@/lib/api-client';
+import  {apiClient} from "@/lib/api-client";
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from 'next-auth/react';
 import CommentSection from '@/components/CommentSection';
@@ -13,41 +13,84 @@ import LikesDropdown from '@/components/LikeDropdown';
 import { useNotification } from '@/components/Notification';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Artwork, Like } from '@/app/types/page';
+// export interface Artwork {
+//   _id?: Types.ObjectId | string;
+//   title: string;
+//   description: string;
+//   mediaType: 'image' | 'video';
+//   mediaUrl: string;
+//   price: number;
+//   currency: string;
+//   isSold: boolean;
+//   createdAt?: Date;
+//   updatedAt?: Date;
+//   artist: {
+//     _id: Types.ObjectId | string;
+//     name?: string;
+//     email?: string;
+//     avatarUrl?: string;
+//   };
+//   likes: {
+//     _id?: string;
+//     user: {
+//       _id: Types.ObjectId | string;
+//       email?: string;
+//       name?: string;
+//       avatarUrl?: string;
+//     };
+//   }[];
+//   comments: {
+//     _id?: string;
+//     user: {
+//       _id: Types.ObjectId | string;
+//       name?: string;
+//       email?: string;
+//       avatarUrl?: string;
+//     };
+//     content: string;
+//     createdAt?: Date;
+//   }[];
+// }
+
 
 export default function ArtworkDetail() {
   const router = useRouter();
   const { id } = useParams();
   const { data: session } = useSession(); 
-  const [artwork, setArtwork] = useState<any>(null);
+  const [artwork, setArtwork] = useState<Artwork>();
   const [showComments, setShowComments] = useState(false);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
   const [showLikesDropdown, setShowLikesDropdown] = useState(false);
   const { showNotification } = useNotification();
+  const [likes, setLikes] = useState<Like[]>([]);
   
-  useEffect(() => {
-    if (id) {
-      fetchArtwork();
-    }
-  }, [id]);
   
-  const fetchArtwork = async () => {
+  const fetchArtwork = useCallback(async () => {
     try {
-      const response = await apiClient.getArtworkById(id!.toString());
-      setArtwork(response.data);
-    } catch (error) {
+      const {artwork, likes} = await apiClient.getArtworkById(id!.toString());
+      setArtwork(artwork);
+      setLikes(likes || []);
+    } catch {
       showNotification('Failed to fetch artwork', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, showNotification]);
+
+  useEffect(() => {
+    if (id) {
+      fetchArtwork();
+    }
+  }, [id, fetchArtwork]);
 
   useEffect(() => {
     if (artwork && session?.user?.id) {
-      setLiked(artwork.likes?.some((like: any) => like?.user?._id?.toString() === session.user.id));
+      setLiked(likes?.some((like: Like) => like?.user?._id?.toString() === session.user.id));
     }
-  }, [artwork, session]);
+  }, [artwork, session, likes]);
 
   const handleLikeToggle = async () => {
     if (!session?.user) {
@@ -63,7 +106,7 @@ export default function ArtworkDetail() {
     try {
       await apiClient.likeContent(id!.toString(), 'artwork');
       fetchArtwork();
-    } catch (error) {
+    } catch {
       showNotification('Error liking artwork', 'error');
     } finally {
       setIsLiking(false);
@@ -81,7 +124,7 @@ export default function ArtworkDetail() {
       if (response.success) {
         router.push('/artwork');
       }
-    } catch (error) {
+    } catch  {
       showNotification('Delete failed', 'error');
     }
   };
@@ -112,14 +155,14 @@ export default function ArtworkDetail() {
     try {
       console.log('artwork._id', artwork._id);
       console.log(typeof artwork._id);
-      const response = await apiClient.buyArtworkById(artwork._id);
+      const response = await apiClient.buyArtworkById(artwork._id.toString());
       console.log('response', response);
       if (response?.url) {
         window.location.href = response.url; // redirect to Stripe checkout
       } else {
         showNotification("Stripe session failed", "error");
       }
-    } catch (error) {
+    } catch  {
       showNotification("Buy failed", "error");
     }
   };
@@ -192,11 +235,11 @@ export default function ArtworkDetail() {
               onClick={() => setShowLikesDropdown(!showLikesDropdown)}
               className="text-gray-600 flex items-center"
             >
-              {artwork.likes?.length || 0} 
+              {likes?.length || 0} 
             </button>
 
             {showLikesDropdown && <LikesDropdown 
-            likes={artwork.likes} 
+            likes={likes} 
             showLikesDropdown={showLikesDropdown} 
             setShowLikesDropdown={setShowLikesDropdown} />}
           </div>
@@ -227,7 +270,7 @@ export default function ArtworkDetail() {
         {showComments && (
           <Suspense fallback={<Skeleton className="h-20 w-full" />}>
           <div className="mt-6">
-          <CommentSection contentId={artwork._id.toString()} category="artwork" />
+          <CommentSection contentId={artwork._id!.toString()} category="artwork" />
         </div>
           </Suspense>
         )}

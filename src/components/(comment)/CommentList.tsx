@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { apiClient } from "@/lib/api-client";
+import { useState, useEffect,useCallback } from "react";
+import  {apiClient} from "@/lib/api-client";
 import CommentForm from "./CommentForm";
 import CommentItem from "./CommentItem";
-import { IComment } from "@/models/Comment";
+import { Comment } from "@/app/types/page";
 
 interface CommentListProps {
   contentId: string;
@@ -10,23 +10,23 @@ interface CommentListProps {
 }
 
 const CommentList = ({ contentId, category }: CommentListProps) => {
-  const [comments, setComments] = useState<IComment[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [totalComments, setTotalComments] = useState<number>(0);
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiClient.getComments(category, contentId,  page);
-      setComments(response.comments);
-      setTotalComments(response.total);
+      const {comments, totalCount} = await apiClient.getComments(category, contentId,  page);
+      setComments(comments!.map((comment: Comment) => ({ ...comment, _id: comment._id?.toString() })));
+      setTotalComments(totalCount!);
     } catch (error) {
       console.error("Failed to fetch comments:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, contentId, page]);
 
   const handlePagination = (newPage: number) => {
     setPage(newPage);
@@ -35,11 +35,18 @@ const CommentList = ({ contentId, category }: CommentListProps) => {
 
   useEffect(() => {
     fetchComments();
-  }, [contentId, page]);
+  }, [contentId, page, fetchComments]);
 
   return (
     <div className="space-y-6">
       <CommentForm contentId={contentId} category={category} onSubmit={fetchComments} />
+
+      {!loading && (
+      <div className="text-sm text-gray-500 mb-2">
+        {totalComments} {totalComments === 1 ? "comment" : "comments"}
+      </div>
+    )} 
+    
       {loading ? (
         <div className="space-y-4">
         {[...Array(3)].map((_, idx) => (

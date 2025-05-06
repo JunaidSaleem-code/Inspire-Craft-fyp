@@ -2,12 +2,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { apiClient } from '@/lib/api-client';
+import  {apiClient} from "@/lib/api-client";
 import TutorialCard from '@/components/TutorialCard';
-import { ITutorial } from '@/models/Tutorial';
+import { Tutorial } from '../types/page';
 
 export default function TutorialsPage() {
-  const [tutorials, setTutorials] = useState<ITutorial[]>([]);
+  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
 
   useEffect(() => {
     const fetchTutorials = async () => {

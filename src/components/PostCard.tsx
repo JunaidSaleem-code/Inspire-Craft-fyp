@@ -1,10 +1,8 @@
 'use client';
 
-import { Heart, MessageCircle, Trash } from 'lucide-react';
+import { Post } from '@/app/types/page';
 import { IKImage } from 'imagekitio-next';
-import { IPost } from '@/models/Post';
 import Link from 'next/link';
-import { useState } from 'react';
 
 const _DIMENSIONS = {
   square: { width: 1080, height: 1080 },
@@ -14,7 +12,7 @@ const _DIMENSIONS = {
 
 
 
-export default function PostCard({ post }: { post: IPost}) {
+export default function PostCard({ post }: { post: Post}) {
   
 
 

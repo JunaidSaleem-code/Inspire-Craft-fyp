@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Artwork from "@/models/Artwork";
-import imagekit from "@/lib/imagekit";
 import Like from "@/models/Like";
 
 
@@ -25,9 +24,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
 
     const likes = await Like.find({ artwork: params.id }).populate("user", "name email image").lean();
 
-    return NextResponse.json({ success: true, data: { ...artwork, likes } });
+    return NextResponse.json({ success: true,  ...artwork, likes  });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Failed to fetch artwork" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Failed to fetch artwork", error }, { status: 500 });
   }
 }
 
@@ -45,7 +44,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
 
     return NextResponse.json({ success: true, message: "Artwork deleted" });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Failed to delete artwork" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Failed to delete artwork", error }, { status: 500 });
   }
 }
 
@@ -56,7 +55,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     const { title, description, transformation, price } = body;
 
-    const updatedArtwork = await Artwork.findByIdAndUpdate(
+    const artwork = await Artwork.findByIdAndUpdate(
       params.id,
       {
         ...(title && { title }),
@@ -67,11 +66,11 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
       { new: true }
     ).populate("artist", "email");
 
-    if (!updatedArtwork) {
+    if (!artwork) {
       return NextResponse.json({ success: false, message: "Artwork not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: updatedArtwork });
+    return NextResponse.json({ success: true,  artwork });
   } catch (error) {
     console.error("PATCH Error:", error);
     return NextResponse.json({ success: false, message: "Failed to update artwork" }, { status: 500 });

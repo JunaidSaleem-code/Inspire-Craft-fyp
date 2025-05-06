@@ -10,6 +10,6 @@ export async function GET(_: Request, { params }: { params: { userId: string } }
     console.log('images', images);
     return NextResponse.json(images, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ message: 'Failed to fetch AI images' }, { status: 500 });
+    return NextResponse.json({ message: 'Failed to fetch AI images', error }, { status: 500 });
   }
 }

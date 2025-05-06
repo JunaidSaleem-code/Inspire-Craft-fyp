@@ -2,9 +2,11 @@
 
 import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
+import { Like } from '@/app/types/page';
+
 
 interface LikesDropdownProps {
-  likes: any[];
+  likes: Like[];
   showLikesDropdown: boolean;
   setShowLikesDropdown: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -29,7 +31,7 @@ const LikesDropdown = ({
     }
 
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showLikesDropdown]);
+  }, [showLikesDropdown , setShowLikesDropdown]);
 
   return (
     showLikesDropdown && (
@@ -45,7 +47,7 @@ const LikesDropdown = ({
           />
         </div>
         <div>
-          {likes?.map((like: any) => (
+          {likes?.map((like: Like) => (
             <div key={like._id} className="text-sm py-1">
               {like.user?.email}
             </div>

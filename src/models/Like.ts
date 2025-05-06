@@ -6,7 +6,6 @@ export interface ILike {
   post?: mongoose.Types.ObjectId;
   tutorial?: mongoose.Types.ObjectId;
   artwork?: mongoose.Types.ObjectId;
-  createdAt?: Date;
 }
 
 function validateSingleLike(this: mongoose.Document & ILike, next: (err?: mongoose.CallbackError) => void) {

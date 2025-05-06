@@ -8,7 +8,16 @@ import { useNotification } from "@/components/Notification";
 import { useParams } from "next/navigation";
 import { IKImage } from "imagekitio-next";
 
-
+type EditableContent = {
+  title: string;
+  description: string;
+  price?: number;
+  mediaUrl?: string;
+  transformation?: {
+    width: number;
+    height: number;
+  };
+};
 export default function EditPage() {
   const params = useParams(); // ✅ hook used at top level
   const searchParams = useSearchParams(); // for fileType, category, etc. from query
@@ -19,7 +28,7 @@ export default function EditPage() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState<number | "">("");
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
-  const [initialValues, setInitialValues] = useState<any>(null);
+  const [initialValues, setInitialValues] = useState<EditableContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,34 +43,53 @@ export default function EditPage() {
         const fetchData = async () => {
       try {
          
-        let data;
         if (category === "artwork") {
-          data = await apiClient.getArtworkById(id);
-          data = data.data;
+          const artwork = await apiClient.getArtworkById(id);
+          setTitle(artwork.title);
+          setDescription(artwork.description!);
+          setMediaUrl(artwork.mediaUrl);
+          setmediawidth(artwork.transformation?.width ?? 0);
+          setmediaheight(artwork.transformation?.height ?? 0);
+          setPrice(artwork.price);
+          setInitialValues({
+            title: artwork.title,
+            description: artwork.description!,
+            mediaUrl: artwork.mediaUrl,
+            price: artwork.price,
+            transformation: artwork.transformation,
+          });
         } else if (category === "post") {
-          data = await apiClient.getPostById(id) ;
-          data = data.data;
+          const  post  = await apiClient.getPostById(id);
+          setTitle(post.title);
+          setDescription(post.description!);
+          setMediaUrl(post.mediaUrl);
+          setmediawidth(post.transformation?.width ?? 0);
+          setmediaheight(post.transformation?.height ?? 0);
+          setInitialValues({
+            title: post.title,
+            description: post.description!,
+            mediaUrl: post.mediaUrl,
+            transformation: post.transformation,
+          });
         } else if (category === "tutorial") {
-          data = await apiClient.getTutorialById(id);
-          data = data.data;
+          const  tutorial  = await apiClient.getTutorialById(id);
+          setTitle(tutorial.title);
+          setDescription(tutorial.description);
+          setMediaUrl(tutorial.mediaUrl);
+          setmediawidth(tutorial.transformation?.width ?? 0);
+          setmediaheight(tutorial.transformation?.height ?? 0);
+          setInitialValues({
+            title: tutorial.title,
+            description: tutorial.description,
+            mediaUrl: tutorial.mediaUrl,
+            transformation: tutorial.transformation,
+          });
         }
-
-        setTitle(data.title);
-        setDescription(data.description);
-        setMediaUrl(data.mediaUrl);
-        setmediawidth(data.transformation?.width);
-        setmediaheight(data.transformation?.height);
-  
-        setInitialValues(data);
-        if (category === "artwork") {
-          setPrice(data.price);
-        }
+        
         setLoading(false);
-      } catch (err) {
+      } catch {
         setError("Failed to fetch content.");
         showNotification("Failed to fetch content", "error");
-      } finally {
-        setLoading(false);
       }
     };
     if(id && category){
@@ -80,7 +108,7 @@ export default function EditPage() {
     setTitle(initialValues.title);
     setDescription(initialValues.description);
     if (category === "artwork") {
-      setPrice(initialValues.price);
+      setPrice(initialValues.price!);
     }
   };
 
@@ -93,12 +121,14 @@ export default function EditPage() {
 
     try {
       setSubmitting(true);
-      const updatedData: any = { title, description };
+      const updatedData: Partial<Omit<EditableContent, 'transformation'>> = { title, description };
+
 
       if (category === "artwork") {
         const parsedPrice = Number(price);
         if (!parsedPrice || parsedPrice <= 0) {
-          return setError("Please provide a valid price.");
+          setError("Please provide a valid price.");
+          return; 
         }
         updatedData.price = parsedPrice;
       }
@@ -106,9 +136,8 @@ export default function EditPage() {
       await apiClient.updateContentById(id!.toString(), category!.toString(), updatedData);
       showNotification("Content updated successfully!", "success");
       router.push("/");
-    } catch (err: any) {
-      const message =
-        err?.response?.data?.message || err.message || "Failed to update content.";
+    } catch  {
+      const message = "Failed to update content.";
       setError(message);
       showNotification(message, "error");
     } finally {

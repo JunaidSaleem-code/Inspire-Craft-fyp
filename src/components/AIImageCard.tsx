@@ -1,17 +1,13 @@
 "use client";
 
+import { GeneratedImage } from "@/app/types/page";
 import { AI_IMAGE_DIMENSIONS } from "@/models/GeneratedImage";
 import { IKImage } from "imagekitio-next";
-import Image from "next/image";
 import Link from "next/link";
 
-type Props = {
-  image: {
-    _id: string;
-    mediaUrl: string;
-    prompt?: string;
-  };
-};
+interface Props {
+  image: GeneratedImage;
+}
 
 export default function AIImageCard({ image }: Props) {
   return (

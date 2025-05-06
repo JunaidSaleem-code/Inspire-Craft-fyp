@@ -1,0 +1,279 @@
+export interface User{
+  _id: string;
+  email?: string;
+  username?: string;
+  avatar?: string;
+  following?: string[];
+  followers?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+  isVerified?: boolean;
+  bio?: string;
+  password?: string;
+}
+export interface Like{
+  _id?: string;
+  user: User;
+  post?: Post;
+  tutorial?: Tutorial;
+  artwork?: Artwork;
+  createdAt?: Date;
+}
+export interface Tutorial{
+  _id: string;
+  author: User;
+  title: string;
+  description: string;
+  mediaFileId?: string;
+  mediaUrl: string;
+  likes: Like[];
+  comments: string[];
+  createdAt: Date;
+  updatedAt: Date;
+  transformation?:{
+    height: number;
+    width: number;
+    quality?: number;
+  }
+}
+
+export interface Post{
+  _id?: string;
+  user: User;
+  title: string;
+  description?: string;
+  mediaUrl: string;
+  mediaFileId: string;
+  mediaType: "image" | "video";
+  comments: Comment[];
+  likes: Like[];
+  controls?: boolean;
+  transformation?:{
+    height: number;
+    width: number;
+    quality?: number;
+  }
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+export interface GeneratedImage {
+  _id?: string;
+  user: User; // Owner of the image
+  prompt: string; // The input prompt used for generation
+  mediaUrl: string; // The generated image URL
+  // thumbnailUrl?: string;
+  isPublic: boolean; // Default is false, stays private
+  source: string;
+  transformation?: {
+    height: number;
+    width: number;
+    quality?: number;
+  };
+  createdAt?: Date;
+  success?: boolean;
+}
+
+export interface Comment {
+  _id?: string;
+  user: User;
+  content: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  commentableType: "tutorial" | "post" | "artwork";
+  commentableId: Tutorial | Post | Artwork;
+}
+export interface Artwork {
+  _id?: string;
+  artist: User;
+  title: string;
+  description?: string;
+  mediaUrl: string;
+  mediaFileId: string;
+  mediaType: "image" | "video";
+  // thumbnailUrl?: string;
+  price: number;
+  currency: "PKR";
+  isSold: boolean;
+  buyer: User;
+  soldAt?: Date;
+  transformation?: {
+    height: number;
+    width: number;
+    quality?: number;
+  };
+  likes: Like[];
+  comments: Comment[];
+  artType?: string;
+  slug?: string;
+  createdAt?: Date;
+}
+export interface GenerateAIImageResponse {
+  success: boolean;
+  image: GeneratedImage;
+}
+export interface GetOwnImageResponse {
+  success: boolean;
+  images: GeneratedImage[];
+}
+export interface PostResponse {
+  success: boolean;
+    post: Post;
+    likes: Like[];
+}
+
+export interface uploadResp {
+  success?: boolean;
+  post?: Post;
+  tutorial?: Tutorial;
+  artwork?: Artwork;
+  message?: string;
+}
+export interface LikeResponse {
+  success: boolean,
+  liked: boolean,
+  totalLikes: number,
+  likes: Like[],
+}
+export interface CommentResponse {
+  success: boolean;
+  comment?: Comment;
+  comments?: Comment[];
+  totalCount?: number;
+  updated?: Comment;
+  message?: string;
+}
+
+export interface CreatePostResponse {
+  success: boolean;
+  post: Post;
+  message?: string;
+}
+export interface PostResponse{ 
+  success: boolean, 
+ post: Post, 
+ likes: Like[] 
+}
+export interface TutorialResponse{ 
+  success: boolean, 
+  tutorial?: Tutorial, 
+  likes?: Like[] 
+  message?: string
+}
+export interface ArtworkResponse{ 
+  success?: boolean, 
+   artwork?: Artwork,
+   likes?: Like[] 
+  message?: string
+}
+export interface CheckoutSessionResponse {
+  success: boolean;
+  url: string;
+}
+export interface ToggleVisibilityResponse{
+   success: true, 
+   image: GeneratedImage, 
+}
+// //DTO for Apiclient
+// // User
+// export interface User {
+//   _id: string;
+//   name: string;
+//   email: string;
+//   bio?: string;
+//   avatarUrl?: string;
+//   followers: string[];
+//   following: string[];
+//   createdAt: string;
+// }
+
+// // Auth
+// export interface RegisterUserDto {
+//   name: string;
+//   email: string;
+//   password: string;
+// }
+// export interface LoginDto {
+//   email: string;
+//   password: string;
+// }
+
+// // Post
+// export interface CreatePostDto {
+//   title: string;
+//   description: string;
+//   mediaUrl: string;
+//   mediaType: "image" | "video";
+// }
+// export interface Post extends CreatePostDto {
+//   _id: string;
+//   author: User;
+//   likes: User[];
+//   comments: Comment[];
+//   createdAt: string;
+// }
+
+// // Artwork
+// export interface CreateArtworkDto {
+//   title: string;
+//   description: string;
+//   price: number;
+//   mediaUrl: string;
+//   mediaType: "image" | "video";
+//   artType: string;
+// }
+// export interface Artwork extends CreateArtworkDto {
+//   _id: string;
+//   artist: User;
+//   likes: User[];
+//   comments: Comment[];
+//   isSold: boolean;
+//   createdAt: string;
+// }
+
+// // Tutorial
+// export interface CreateTutorialDto {
+//   title: string;
+//   description: string;
+//   mediaUrl: string;
+// }
+// export interface Tutorial extends CreateTutorialDto {
+//   _id: string;
+//   author: User;
+//   comments: Comment[];
+//   createdAt: string;
+// }
+
+// // AI Image
+// export interface GenerateAIImageDto {
+//   prompt: string;
+// }
+// export interface AIImage {
+//   _id: string;
+//   prompt: string;
+//   imageUrl: string;
+//   owner: User;
+//   isPublic: boolean;
+//   createdAt: string;
+// }
+
+// // Comment
+// export interface Comment {
+//   _id: string;
+//   content: string;
+//   author: User;
+//   replies: Comment[];
+//   parentComment?: string;
+//   createdAt: string;
+// }
+// export interface CreateCommentDto {
+//   comment: string;
+//   parentId?: string;
+// }
+
+// // Generic
+// export interface PaginatedResponse<T> {
+//   data: T[];
+//   page: number;
+//   limit: number;
+//   total: number;
+// }

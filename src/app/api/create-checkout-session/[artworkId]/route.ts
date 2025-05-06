@@ -66,7 +66,7 @@ export async function POST(req: NextRequest, { params }: { params: { artworkId: 
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/artwork/${artwork._id}`,
     });
 
-    return NextResponse.json({ url: checkoutSession.url });
+    return NextResponse.json({success: true, url: checkoutSession.url });
   } catch (err) {
     console.error("Checkout error:", err);
     return NextResponse.json({ error: "Failed to initiate checkout" }, { status: 500 });

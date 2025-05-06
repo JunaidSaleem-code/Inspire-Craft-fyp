@@ -1,54 +1,56 @@
 'use client';
 
-import { Heart, MessageCircle, Trash, Pencil, Loader } from 'lucide-react';
+import { Heart, MessageCircle, Trash, Pencil } from 'lucide-react';
 import { IKImage } from 'imagekitio-next';
-import { IPost } from '@/models/Post';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState,useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { apiClient } from '@/lib/api-client';
+import  {apiClient} from "@/lib/api-client";
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from 'next-auth/react';
 import CommentSection from '@/components/CommentSection';
 import { formatDistanceToNow } from 'date-fns';
 import LikesDropdown from '@/components/LikeDropdown';
 import { useNotification } from '@/components/Notification';
+import { Like, Post } from '@/app/types/page';
+
 
 export default function PostDetail() {
   const router = useRouter();
   const { id } = useParams();
   const { data: session } = useSession();
-  const [post, setPost] = useState<IPost | null>(null);
+  const [post, setPost] = useState<Post >();
   const [showComments, setShowComments] = useState(false);
   const [loading, setLoading] = useState(true);
   const [liked, setLiked] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
   const [showLikesDropdown, setShowLikesDropdown] = useState(false);
   const {showNotification} = useNotification();
-
+  const [likes,setLikes] = useState<Like[]>([]);
   
-  useEffect(() => {
-    if (id) {
-      fetchPost();
-    }
-  }, [id]);
-  
-  const fetchPost = async () => {
+  const fetchPost = useCallback(async () => {
     try {
-      const response = await apiClient.getPostById(id!.toString());
-      setPost(response.data);
-      console.log('post', response.data);
-    } catch (error) {
+      const {post,likes} = await apiClient.getPostById(id!.toString());
+      setPost(post);
+      setLikes(likes);
+      console.log('post', post);
+    } catch {
       showNotification('Failed to fetch post', 'error');
       // console.error('Failed to fetch post', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, showNotification]);
+  useEffect(() => {
+    if (id) {
+      fetchPost();
+    }
+  }, [id, fetchPost]);
+  
   useEffect(() => {
     if (post && session?.user?.id) {
-      setLiked(post.likes?.some((like: any) => like?.user?._id?.toString() === session.user.id));
+      setLiked((likes as Like[])?.some((like) => like?.user?._id?.toString() === session.user.id));
     }
-  }, [post, session]);
+  }, [post, session,likes]);
 
   const handleLikeToggle = async () => {
     if (!session?.user) {
@@ -65,7 +67,7 @@ export default function PostDetail() {
     try {
       await apiClient.likeContent(id!.toString(), 'post');
       fetchPost();
-    } catch (error) {
+    } catch {
       showNotification('Error liking post', 'error');
       // console.error(error);
     } finally {
@@ -84,7 +86,7 @@ export default function PostDetail() {
       if (response.success) {
         router.push('/post');
       }
-    } catch (error) {
+    } catch {
       showNotification('Delete failed', 'error');
       // console.error('Delete failed:', error);
     }
@@ -166,12 +168,12 @@ export default function PostDetail() {
               onClick={() => setShowLikesDropdown((prev) => !prev)}
               className="text-gray-500 hover:text-gray-700"
             >
-              <span className="text-lg">{post.likes?.length || 0}</span>
+              <span className="text-lg">{likes?.length || 0}</span>
             </button>
 
             {/* Likes Dropdown */}
             {showLikesDropdown && <LikesDropdown
-              likes={post?.likes}
+              likes={likes as Like[]}
               showLikesDropdown={showLikesDropdown}
               setShowLikesDropdown={setShowLikesDropdown}
             />}

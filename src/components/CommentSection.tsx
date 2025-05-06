@@ -1,4 +1,3 @@
-import { useState } from "react";
 import CommentList from "./(comment)/CommentList";
 
 const CommentSection = ({ contentId, category }: { contentId: string, category: string }) => {

@@ -1,12 +1,12 @@
 // components/PostList.tsx
 'use client'
 import { useState, useEffect } from 'react';
-import { IPost } from '@/models/Post';
 import PostCard from '@/components/PostCard';
-import { apiClient } from '@/lib/api-client';
+import  {apiClient} from "@/lib/api-client";
+import { Post } from '../types/page';
 
 const PostList = () => {
-  const [posts, setPosts] = useState<IPost[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState<boolean>(true); // For loading state
   const [error, setError] = useState<string | null>(null); // For error state
 
@@ -28,16 +28,6 @@ const PostList = () => {
     fetchPosts();
   }, []);
 
-  const handleDeletePost = async (postId: string) => {
-    try {
-      // Delete the post from the server
-      await apiClient.deletePost(postId);
-      // Remove the deleted post from the state
-      setPosts((prevPosts) => prevPosts.filter((post) => post._id?.toString() !== postId));
-    } catch (error) {
-      console.error('Failed to delete post:', error);
-    }
-  };
 
   // If the data is still loading
   if (loading) {

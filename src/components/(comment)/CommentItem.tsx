@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { apiClient } from "@/lib/api-client";
+import  {apiClient} from "@/lib/api-client";
+import Image from "next/image";
+import { Comment } from "@/app/types/page";
+
+
 
 interface CommentItemProps {
-  comment: any;
+  comment: Comment;
   contentId: string;
   category: string;
   onCommentUpdate: () => void;
 }
 
-const CommentItem = ({ comment, contentId, category, onCommentUpdate }: CommentItemProps) => {
+const CommentItem = ({ comment, category, onCommentUpdate }: CommentItemProps) => {
   const { data: session } = useSession();
   const [editing, setEditing] = useState(false);
   const [updatedComment, setUpdatedComment] = useState<string>(comment.content || "");
@@ -23,9 +27,9 @@ const CommentItem = ({ comment, contentId, category, onCommentUpdate }: CommentI
     e.preventDefault();
     try {
       console.log('comment._id', comment._id, 'category', category, 'updatedComment', updatedComment);
-      const response =await apiClient.updateComment(comment._id.toString(), category, {
-        content: updatedComment,
-      });
+      const response =await apiClient.updateComment(comment._id!.toString(), category, 
+        updatedComment,
+      );
       console.log('response:: edit:', response);
       setEditing(false);
       onCommentUpdate();
@@ -36,24 +40,25 @@ const CommentItem = ({ comment, contentId, category, onCommentUpdate }: CommentI
 
   const handleDelete = async () => {
     try {
-      await apiClient.deleteComment(comment._id, category);
+      await apiClient.deleteComment(comment._id!, category);
       onCommentUpdate();
     } catch (error) {
       console.error("Failed to delete comment:", error);
     }
   };
+  if(!comment) return <p>No comments</p>;
 
   return (
     <div className="space-y-3 p-4 border-b">
       {/* Header: Avatar + Name */}
       <div className="flex items-center space-x-2">
-        <img
+        <Image
           src={comment.user?.avatar || "/default-avatar.png"}
-          alt={comment.user?.name || "User"}
+          alt={comment.user?.username || "User"}
           className="w-8 h-8 rounded-full"
         />
         <span className="font-semibold text-sm">
-          {comment.user?.name || "Unknown"}
+          {comment.user?.username || "Unknown"}
         </span>
       </div>
 

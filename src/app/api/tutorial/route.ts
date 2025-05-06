@@ -8,15 +8,9 @@ export async function GET() {
   try {
     await connectDB();
     const tutorials = await Tutorial.find()
-      .populate("author", "email username avatar")
-      // .populate({
-      //   path: "comments",
-      //   populate: { path: "user", select: "username avatar" },
-      // })
-      .sort({ createdAt: -1 })
-      .lean();
+      .populate("author", "email username avatar").sort({ createdAt: -1 }).lean();
 
-    return NextResponse.json({ success: true, data: tutorials });
+    return NextResponse.json( tutorials );
   } catch (error) {
     console.error("Error fetching tutorials:", error);
     return NextResponse.json({ success: false, message: "Failed to fetch tutorials" }, { status: 500 });
@@ -46,7 +40,7 @@ export async function POST(req: Request) {
 
     await newTutorial.save();
 
-    return NextResponse.json({ success: true, data: newTutorial });
+    return NextResponse.json({ success: true, tutorial: newTutorial });
   } catch (error) {
     console.error("Error creating tutorial:", error);
     return NextResponse.json({ success: false, message: "Failed to create tutorial" }, { status: 500 });

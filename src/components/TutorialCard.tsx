@@ -1,12 +1,12 @@
 // components/tutorial/TutorialCard.tsx
 'use client';
 
+import { Tutorial } from '@/app/types/page';
 import { Card, CardContent } from '@/components/ui/card';
-import { ITutorial } from '@/models/Tutorial';
 import Link from 'next/link';
 
 interface Props {
-  tutorial: ITutorial;
+  tutorial: Tutorial;
 }
 
 export default function TutorialCard({ tutorial }: Props) {

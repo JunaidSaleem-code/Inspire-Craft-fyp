@@ -3,15 +3,16 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { apiClient } from "@/lib/api-client";
+import  {apiClient} from "@/lib/api-client";
 import { Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { IKImage } from "imagekitio-next";
 import { useNotification } from "@/components/Notification";
+import { GeneratedImage } from "@/app/types/page";
 
 export default function AIImageDetailsPage() {
-  const [image, setImage] = useState<any>(null);
+  const [image, setImage] = useState< GeneratedImage>();
   const [loading, setLoading] = useState(true);
   const { id } = useParams<{ id: string }>();
   const { data: session } = useSession();
@@ -34,13 +35,14 @@ export default function AIImageDetailsPage() {
     };
 
     fetchImage();
-  }, [id]);
+  }, [id, showNotification]);
 
   const toggleVisibility = async () => {
     try {
-      const data = await apiClient.toggleImageVisibility(image._id, !image.isPublic);
+      const data = await apiClient.toggleImageVisibility(image!._id!, !image!.isPublic);
       if (data.success) {
-        setImage((prev: any) => ({ ...prev, isPublic: !prev.isPublic }));
+        setImage((prev) => prev ? { ...prev, isPublic: !prev.isPublic } : prev);
+
       }
     } catch {
       showNotification("Failed to toggle visibility", "error");
@@ -48,6 +50,8 @@ export default function AIImageDetailsPage() {
   };
 
   if (loading) return <Loader2 className="mx-auto animate-spin mt-10" />;
+
+  if (!image) return <p>Image not found</p>;
 
   const user = image.user;
   const isOwner = session?.user?.id === user?._id;
@@ -58,10 +62,10 @@ export default function AIImageDetailsPage() {
         {/* Image */}
         <div className="relative aspect-[4/3]">
           <IKImage
-            path={image.mediaUrl}
+            path={image?.mediaUrl}
             transformation={[{
-              width: image.transformation?.width || 1024,
-              height: image.transformation?.height || 1024,
+              width: image.transformation?.width.toString() || "1024",
+              height: image.transformation?.height.toString() || '1024',
             }]}
             alt={image.prompt}
             loading="eager"
@@ -83,9 +87,12 @@ export default function AIImageDetailsPage() {
                   {user?.username || "Anonymous"}
                   {user?.isVerified && <span className="ml-1 text-blue-500 text-sm">✔️</span>}
                 </p>
-                <p className="text-xs text-gray-500">
-                  {formatDistanceToNow(new Date(image.createdAt))} ago
-                </p>
+                {image.createdAt && (
+  <p className="text-xs text-gray-500">
+    {formatDistanceToNow(new Date(image.createdAt))} ago
+  </p>
+)}
+
               </div>
             </div>
             {/* <div className="text-sm text-gray-500">{user?.followers?.length || 0} followers</div> */}

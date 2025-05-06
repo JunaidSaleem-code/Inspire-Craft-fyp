@@ -30,6 +30,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, url: session.url });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Transaction failed" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Transaction failed", error }, { status: 500 });
   }
 }

@@ -69,8 +69,8 @@
 'use client';
 
 import { IKImage, IKVideo } from 'imagekitio-next';
-import { IArtwork } from '@/models/Artwork';
 import { useRouter } from 'next/navigation';
+import { Artwork } from '@/app/types/page';
 
 const _DIMENSIONS = {
   square: { width: 1080, height: 1080 },
@@ -79,7 +79,7 @@ const _DIMENSIONS = {
 } as const;
 
 interface ArtworkCardProps {
-  artwork: IArtwork;
+  artwork: Artwork;
 }
 
 export default function ArtworkCard({ artwork }: ArtworkCardProps) {

@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState,useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { apiClient } from '@/lib/api-client';
-import { ITutorial } from '@/models/Tutorial';
+import  {apiClient} from "@/lib/api-client";
 import { useSession } from 'next-auth/react';
 import { formatDistanceToNow } from 'date-fns';
 import { Heart, MessageCircle, Pencil, Trash } from 'lucide-react';
@@ -11,6 +10,9 @@ import CommentSection from '@/components/CommentSection';
 import LikesDropdown from '@/components/LikeDropdown';
 import { useNotification } from '@/components/Notification';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Like, Tutorial, User } from '@/app/types/page';
+
+
 
 export default function TutorialPage() {
   const { id } = useParams();
@@ -18,28 +20,29 @@ export default function TutorialPage() {
   const { data: session } = useSession();
   const { showNotification } = useNotification();
 
-  const [tutorial, setTutorial] = useState<ITutorial | null>(null);
+  const [tutorial, setTutorial] = useState<Tutorial | null>(null);
   const [liked, setLiked] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showComments, setShowComments] = useState(false);
   const [showLikesDropdown, setShowLikesDropdown] = useState(false);
 
+  
+  const fetchTutorial = useCallback(async () => {
+    try {
+      const {tutorial,likes} = await apiClient.getTutorialById(id as string);
+      setTutorial(tutorial!);
+      setLiked(likes!.some((like: Like) => like?.user?._id === session?.user?.id));
+    } catch {
+      showNotification('Failed to fetch tutorial', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [id, session, showNotification]);
+
   useEffect(() => {
     if (id) fetchTutorial();
-  }, [id]);
-
-  const fetchTutorial = async () => {
-    try {
-      const res = await apiClient.getTutorialById(id as string);
-      setTutorial(res.data);
-      setLiked(res.data.likes?.some((like: any) => like?.user?._id === session?.user?.id));
-    } catch {
-        showNotification('Failed to fetch tutorial', 'error');
-    } finally {
-        setLoading(false);
-    }
-  };
+  }, [id, fetchTutorial]);
 
   const handleLikeToggle = async () => {
     if (!session?.user) return showNotification('Login to like!', 'error');
@@ -91,7 +94,7 @@ export default function TutorialPage() {
 
   if (!tutorial) return <div className="text-center mt-10 text-red-500">Tutorial not found</div>;
 
-  const isOwner = session?.user?.id === (tutorial.author as any)?._id;
+  const isOwner = session?.user?.id === tutorial.author?._id;
 
   return (
     <div className="bg-white shadow-xl rounded-xl overflow-hidden max-w-2xl mx-auto mt-4 mb-12 border">
@@ -108,7 +111,7 @@ export default function TutorialPage() {
           <div className="text-sm text-gray-600">
             {typeof tutorial.author === 'object' ? (
               <span className="font-semibold">
-                {(tutorial.author as any)?.username || (tutorial.author as any)?.email}
+                {(tutorial.author as User)?.username || (tutorial.author as User)?.email}
               </span>
             ) : (
               <span className="text-gray-400">Unknown Author</span>
@@ -151,7 +154,7 @@ export default function TutorialPage() {
 
             {showLikesDropdown && (
               <LikesDropdown
-                likes={tutorial.likes}
+                likes={tutorial.likes ||  []}
                 showLikesDropdown={showLikesDropdown}
                 setShowLikesDropdown={setShowLikesDropdown}
               />

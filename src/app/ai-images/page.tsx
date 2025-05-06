@@ -1,27 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiClient } from "@/lib/api-client";
+import  {apiClient} from "@/lib/api-client";
 import { Loader2 } from "lucide-react";
 import AIImageCard from "@/components/AIImageCard";
+import { useNotification } from "@/components/Notification";
+import { GeneratedImage } from "@/app/types/page";
+
+
 
 export default function MyAiImagesPage() {
-  const [images, setImages] = useState<any[]>([]);
+  const [images, setImages] = useState<GeneratedImage[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     const fetchImages = async () => {
       try {
         const data = await apiClient.getOwnAIImages();
-        if (data.success) setImages(data.images);
-      } catch (err) {
-        console.error("Failed to load private images");
+         setImages(data);
+        
+      } catch{
+        showNotification("Failed to load private images", "error");
       } finally {
         setLoading(false);
-      }
+    }
     };
     fetchImages();
-  }, []);
+  }, [showNotification]);
 
   if (loading) return <Loader2 className="mx-auto animate-spin mt-10" />;
 

@@ -1,7 +1,6 @@
 import mongoose, { Schema, model, models } from "mongoose";
 
 export interface IComment {
-  _id?: mongoose.Types.ObjectId;
   user: mongoose.Types.ObjectId;
   content: string;
   createdAt?: Date;

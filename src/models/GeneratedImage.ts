@@ -5,7 +5,6 @@ export const AI_IMAGE_DIMENSIONS = {
 } as const;
 
 export interface IGeneratedImage {
-  _id?: mongoose.Types.ObjectId;
   user: mongoose.Types.ObjectId; // Owner of the image
   prompt: string; // The input prompt used for generation
   mediaUrl: string; // The generated image URL
@@ -17,7 +16,6 @@ export interface IGeneratedImage {
     width: number;
     quality?: number;
   };
-  createdAt?: Date;
 }
 
 const generatedImageSchema = new Schema<IGeneratedImage>(

@@ -29,6 +29,6 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 
     return NextResponse.json({ success: true, image: updatedImage });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Failed to update visibility" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Failed to update visibility", error }, { status: 500 });
   }
 }

@@ -8,6 +8,6 @@ export async function GET(_: Request, { params }: { params: { userId: string } }
     const tutorials = await Tutorial.find({ author: params.userId }).sort({ createdAt: -1 });
     return NextResponse.json(tutorials, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ message: 'Failed to fetch tutorials' }, { status: 500 });
+    return NextResponse.json({ message: 'Failed to fetch tutorials', error }, { status: 500 });
   }
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { apiClient } from "@/lib/api-client";
+import  {apiClient} from "@/lib/api-client";
 import { useNotification } from "@/components/Notification";
 import { useRouter } from "next/navigation";
 
@@ -10,8 +10,9 @@ import ArtworkCard from "@/components/ArtworkCard";
 import PostCard from "@/components/PostCard";
 import TutorialCard from "@/components/TutorialCard";
 import AIImageCard from "@/components/AIImageCard";
-import { Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { Artwork, GeneratedImage, Post, Tutorial, User } from "@/app/types/page";
 
 type TabType = "artworks" | "posts" | "tutorials" | "aiImages";
 
@@ -25,15 +26,15 @@ export default function ProfilePage({ params }: { params: { userId?: string } })
   const profileUserId = params?.userId || session?.user?.id;
   const isOwnProfile = session?.user?.id === profileUserId;
 
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<User>();
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
 
-  const [artworks, setArtworks] = useState<any[]>([]);
-  const [posts, setPosts] = useState<any[]>([]);
-  const [tutorials, setTutorials] = useState<any[]>([]);
-  const [aiImages, setAiImages] = useState<any[]>([]);
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
+  const [aiImages, setAiImages] = useState<GeneratedImage[]>([]);
 
   const [activeTab, setActiveTab] = useState<TabType>("artworks");
   const [loadedTabs, setLoadedTabs] = useState<Record<TabType, boolean>>({
@@ -60,7 +61,7 @@ export default function ProfilePage({ params }: { params: { userId?: string } })
         if (!isOwnProfile && session?.user?.id) {
           setIsFollowing(userRes.followers?.includes(session.user.id));
         }
-      } catch (err) {
+      } catch {
         showNotification("Failed to load profile", "error");
       }
     };
@@ -111,13 +112,13 @@ export default function ProfilePage({ params }: { params: { userId?: string } })
         {/* Profile Info */}
         <div className="bg-white p-6 rounded-xl shadow-md text-center md:text-left">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            <img
+            <Image
               src={userProfile?.avatar || "/default-avatar.png"}
               alt="Profile"
               className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
             />
             <div>
-              <h2 className="text-3xl font-bold text-indigo-700">{userProfile?.name}</h2>
+              <h2 className="text-3xl font-bold text-indigo-700">{userProfile?.username}</h2>
               <p className="text-gray-700 mt-1">{userProfile?.bio || "No bio provided."}</p>
               <div className="mt-2 flex gap-4 text-sm text-gray-600">
                 <span><strong>{followerCount}</strong> Followers</span>
@@ -174,13 +175,13 @@ export default function ProfilePage({ params }: { params: { userId?: string } })
         {/* Tab Content */}
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {activeTab === "artworks" &&
-            artworks.map((art) => <ArtworkCard key={art._id} artwork={art} />)}
+            artworks.map((art) => <ArtworkCard key={art._id?.toString()} artwork={art} />)}
 
           {activeTab === "posts" &&
-            posts.map((post) => <PostCard key={post._id} post={post} />)}
+            posts.map((post) => <PostCard key={post._id!.toString()} post={post} />)}
 
           {activeTab === "tutorials" &&
-            tutorials.map((tutorial) => <TutorialCard key={tutorial._id} tutorial={tutorial} />)}
+            tutorials.map((tutorial) => <TutorialCard key={tutorial._id!.toString()} tutorial={tutorial} />)}
 
           {activeTab === "aiImages" &&
             aiImages.map((image) => <AIImageCard key={image._id} image={image} />)}

@@ -3,15 +3,15 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Image from "next/image";
 import { motion } from "framer-motion";
-import { apiClient } from "@/lib/api-client";
+import  {apiClient} from "@/lib/api-client";
 import { IKImage } from "imagekitio-next";
+import { GeneratedImage } from "@/app/types/page";
 
 export default function AIGeneratePage() {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
-  const [image, setImage] = useState<any>(null); // store full image object
+  const [image, setImage] = useState<GeneratedImage>(); // store full image object
 
   const generateImage = async () => {
     setLoading(true);
@@ -28,9 +28,9 @@ export default function AIGeneratePage() {
   const toggleVisibility = async () => {
     if (!image) return;
     try {
-      const data = await apiClient.toggleImageVisibility(image._id, !image.isPublic);
+      const data = await apiClient.toggleImageVisibility(image._id!, !image.isPublic);
       if (data.success) {
-        setImage((prev: any) => ({ ...prev, isPublic: !prev.isPublic }));
+        setImage(prev => ({ ...prev!, isPublic: !prev!.isPublic, }));
       }
     } catch (err) {
       console.error("Failed to toggle visibility:", err);
@@ -69,8 +69,8 @@ export default function AIGeneratePage() {
         path={image.mediaUrl}
         transformation={[
           {
-            width: image.transformation?.width || 1024,
-            height: image.transformation?.height || 1024,
+            width: image.transformation?.width.toString() || '1024',
+            height: image.transformation?.height.toString() || '1024',
           },
         ]}
         alt={image.prompt}
@@ -83,7 +83,7 @@ export default function AIGeneratePage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <p><strong>Prompt:</strong> <em>{image.prompt}</em></p>
         <p className="text-xs text-white/60">
-          Generated: {new Date(image.createdAt).toLocaleDateString()}
+          Generated: {new Date(image.createdAt!).toLocaleDateString()}
         </p>
       </div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">

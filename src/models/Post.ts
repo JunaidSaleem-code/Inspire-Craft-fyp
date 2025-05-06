@@ -8,7 +8,6 @@ export const POST_DIMENSIONS = {
   landscape: { width: 1080, height: 566 },  //Tutorial
 } as const;
 export interface IPost extends Document {
-  _id?: mongoose.Types.ObjectId;
   user: mongoose.Types.ObjectId;
   title: string;
   description?: string;
@@ -24,8 +23,6 @@ export interface IPost extends Document {
     width: number;
     quality?: number;
   }
-  createdAt?: Date
-  updatedAt?: Date
 }
 
 const postSchema = new Schema<IPost>(

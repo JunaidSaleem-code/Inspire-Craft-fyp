@@ -16,8 +16,8 @@ export async function GET() {
   
       const images = await GeneratedImage.find({ isPublic: true }).sort({ createdAt: -1 });
       console.log('images', images);
-      return NextResponse.json({ success: true, images });
+      return NextResponse.json( images );
     } catch (error) {
-      return NextResponse.json({ success: false, message: "Failed to fetch images" }, { status: 500 });
+      return NextResponse.json({ success: false, message: "Failed to fetch images" , error}, { status: 500 });
     }
 }

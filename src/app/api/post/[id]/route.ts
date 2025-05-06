@@ -8,7 +8,13 @@ import Like from '@/models/Like';
 
 const isValidObjectId = (id: string) => mongoose.Types.ObjectId.isValid(id);
 
-export async function GET(request:Request, { params }: { params: { id: string } }) {
+type PostUpdatePayload = Partial<{
+  title: string;
+  description: string;
+  mediaUrl: string;
+}>;
+
+export async function GET( { params }: { params: { id: string } }) {
   await connectDB();
   const  {id}  = params;
 
@@ -19,13 +25,13 @@ export async function GET(request:Request, { params }: { params: { id: string } 
   try {
     const [post, likes] = await Promise.all([
       Post.findById(id).populate('user').lean(),
-      Like.find({ post: id }).populate('user', 'name email image').lean(),
+      Like.find({ post: id }).populate('user', '_id name email avatar').lean(),
     ]);
     if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: { ...post, likes }}, { status: 200 });
+    return NextResponse.json({ success: true, ...post, likes }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
@@ -89,21 +95,21 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   try {
-    const body = await req.json();
+    const body: PostUpdatePayload = await req.json();
 
     // Only update fields that exist in the request body
-    const updates: any = {};
+    const updates: PostUpdatePayload = {};
     if (body.title) updates.title = body.title;
     if (body.description) updates.description = body.description;
     if (body.mediaUrl) updates.mediaUrl = body.mediaUrl;
 
-    const updatedPost = await Post.findByIdAndUpdate(id, updates, { new: true });
+    const post = await Post.findByIdAndUpdate(id, updates, { new: true });
 
-    if (!updatedPost) {
+    if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: updatedPost }, { status: 200 });
+    return NextResponse.json({ success: true, post }, { status: 200 });
   } catch (error) {
     console.error("PATCH error:", error);
     return NextResponse.json({ error: 'Failed to update post' }, { status: 500 });

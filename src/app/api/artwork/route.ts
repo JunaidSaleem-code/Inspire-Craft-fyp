@@ -15,7 +15,7 @@ export async function GET() {
       return NextResponse.json({ success: false, message: "No artworks found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: artworks });
+    return NextResponse.json( artworks );
   } catch (error) {
     console.error("Error fetching artworks:", error);
     return NextResponse.json({ success: false, message: "Failed to fetch artworks" }, { status: 500 });
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Missing mediaUrl or fileId" }, { status: 400 });
     }
 
-    const newArtwork = new Artwork({
+    const artwork = new Artwork({
       artist: session.user.id,
       title,
       description,
@@ -50,11 +50,11 @@ export async function POST(req: Request) {
       price,
     });
 
-    await newArtwork.save();
+    await artwork.save();
 
-    return NextResponse.json({ success: true, data: newArtwork });
+    return NextResponse.json({ success: true, artwork });
   } catch (error) {
-    return NextResponse.json({ success: false, message: "Failed to create artwork" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Failed to create artwork", error }, { status: 500 });
   }
 }
 

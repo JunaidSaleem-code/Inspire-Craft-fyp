@@ -8,25 +8,30 @@ export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  await connectDB();
-  const { id } =  params;
-
-  if (!id || !/^[a-fA-F0-9]{24}$/.test(id)) {
-    return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+  try {
+    await connectDB();
+    const { id } =  params;
+  
+    if (!id || !/^[a-fA-F0-9]{24}$/.test(id)) {
+      return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
+    }
+    const [tutorial, likes] = await Promise.all([
+      Tutorial.findById(id).populate('author', 'username email').lean(),
+      Like.find({ tutorial: id }).populate('user', 'name email image').lean(),
+    ]);
+   
+    if (!tutorial) {
+      return NextResponse.json({ message: "Tutorial not found" }, { status: 404 });
+    }
+  
+  
+    return NextResponse.json({ success: true,  ...tutorial,
+       likes 
+      }, { status: 200 });
+  }catch (error) {
+    console.error("Error fetching tutorial:", error);
+    return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
   }
-  const [tutorial, likes] = await Promise.all([
-    Tutorial.findById(id).populate('author', 'username email').lean(),
-    Like.find({ tutorial: id }).populate('user', 'name email image').lean(),
-  ]);
- 
-  if (!tutorial) {
-    return NextResponse.json({ message: "Tutorial not found" }, { status: 404 });
-  }
-
-
-  return NextResponse.json({ success: true, data: { ...tutorial,
-     likes 
-    }}, { status: 200 });
 }
 
 // DELETE /api/tutorial/[id]
@@ -45,7 +50,7 @@ export async function DELETE(
     }
 
     await Tutorial.findByIdAndDelete(id);
-    return NextResponse.json({ message: "Tutorial deleted successfully" }, { status: 200 });
+    return NextResponse.json({success: true, message: "Tutorial deleted successfully" }, { status: 200 });
   } catch (error) {
     console.error("Error deleting tutorial:", error);
     return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });

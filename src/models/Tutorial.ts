@@ -1,19 +1,14 @@
-import mongoose, { Schema, Document ,CallbackError } from 'mongoose';
-import { IUser } from './User';
+import mongoose, { Schema ,CallbackError } from 'mongoose';
 import imagekit from '@/lib/imagekit';
-import Like from './Like';
 
-export interface ITutorial extends Document {
-  // _id?: mongoose.Types.ObjectId;
-  author: mongoose.Types.ObjectId | IUser ;
+
+export interface ITutorial {
+  author: mongoose.Types.ObjectId;
   title: string;
   description: string;
   mediaFileId?: string;
   mediaUrl: string;
-  likes: mongoose.Types.ObjectId[];
   comments: mongoose.Types.ObjectId[];
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 const TutorialSchema: Schema = new Schema(

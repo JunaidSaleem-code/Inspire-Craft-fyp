@@ -2,17 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { apiClient } from "@/lib/api-client";
+import  {apiClient} from "@/lib/api-client";
 import { useNotification } from "@/components/Notification";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { IKUpload } from "imagekitio-next";
 import { IKUploadResponse } from "imagekitio-next/dist/types/components/IKUpload/props";
 import { Loader2 } from "lucide-react";
+import Image from "next/image";
 
 export default function EditProfilePage({ params }: { params: { userId: string } }) {
-  const { data: session } = useSession();
   const router = useRouter();
   const { showNotification } = useNotification();
 
@@ -76,8 +75,8 @@ export default function EditProfilePage({ params }: { params: { userId: string }
       await apiClient.updateUser(userId, { name, bio, avatar });
       showNotification("Profile updated successfully", "success");
       router.push(`/profile/${userId}`);
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err.message || "Failed to update profile.";
+    } catch {
+      const message ="Failed to update profile.";
       showNotification(message, "error");
     }
   };
@@ -133,7 +132,7 @@ export default function EditProfilePage({ params }: { params: { userId: string }
 
           {avatar && (
             <div className="mt-4">
-              <img
+              <Image
                 src={avatar}
                 alt="Avatar"
                 className="w-32 h-32 rounded-full object-cover border border-gray-300 shadow"

@@ -2,7 +2,6 @@ import mongoose, { Schema, model, models } from "mongoose";
 import bcrypt from "bcryptjs";
 
 export interface IUser {
-  _id?: mongoose.Types.ObjectId;
   email: string;
   password: string;
   username: string; // Unique username for the user
@@ -11,8 +10,6 @@ export interface IUser {
   followers: mongoose.Types.ObjectId[]; // Array of user IDs who follow this user
   following: mongoose.Types.ObjectId[]; // Array of user IDs this user is following
   isVerified: boolean; // Whether the user's email has been verified
-  createdAt?: Date;
-  updatedAt?: Date;
 }
 
 const userSchema = new Schema<IUser>(

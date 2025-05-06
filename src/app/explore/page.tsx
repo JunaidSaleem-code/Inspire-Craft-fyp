@@ -4,11 +4,10 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { IKImage } from "imagekitio-next";
 import { Heart, Bookmark } from "lucide-react";
-import { IArtwork } from "@/models/Artwork";
-import { ITutorial } from "@/models/Tutorial";
+import { Artwork } from "../types/page";
 
 export default function ExplorePage() {
-  const [artworks, setArtworks] = useState<IArtwork[]>([]);
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
   // const [tutorials, setTutorials] = useState<ITutorial[]>([]);
   const IMAGEKIT_BASE_URL = process.env.NEXT_PUBLIC_URL_ENDPOINT;
 

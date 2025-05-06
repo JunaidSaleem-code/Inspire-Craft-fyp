@@ -5,8 +5,20 @@ import { useRouter } from "next/navigation";
 import { IKUpload } from "imagekitio-next";
 import { IKUploadResponse } from "imagekitio-next/dist/types/components/IKUpload/props";
 import { Loader2 } from "lucide-react";
-import { apiClient } from "@/lib/api-client";
+import  {apiClient} from "@/lib/api-client";
 import { useNotification } from "@/components/Notification";
+import Image from "next/image";
+
+export interface Data {
+  title: string;
+  description : string;
+  mediaUrl: string;
+  mediaFileId: string;
+  mediaType: "image" | "video";
+  category: "post" | "tutorial" | "artwork";
+  price: number;
+  currency: string;
+}
 
 export default function UploadPage() {
   const [category, setCategory] = useState<"post" | "tutorial" | "artwork">("artwork");
@@ -75,13 +87,15 @@ export default function UploadPage() {
     if (!mediaUrl || !mediaFileId) return setError("File upload is required.");
 
     try {
-      const data: any = {
+      const data: Data = {
         title,
         description,
         mediaUrl,
         mediaFileId,
         mediaType: fileType,
         category,
+        price: 0,
+        currency: "",
       };
 
       if (category === "artwork") {
@@ -106,8 +120,8 @@ export default function UploadPage() {
 
       // ✅ Redirect after success
       router.push("/");
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err.message || "Error occurred during submission.";
+    } catch {
+      const message ="Error occurred during submission.";
       setError(message);
       showNotification(message, "error");
     } finally {
@@ -218,7 +232,7 @@ export default function UploadPage() {
           {mediaUrl && (
             <div className="mt-4">
               {fileType === "image" ? (
-                <img src={mediaUrl} alt="Uploaded" className="w-full max-h-64 object-contain rounded-xl shadow" />
+                <Image src={mediaUrl} alt="Uploaded" className="w-full max-h-64 object-contain rounded-xl shadow" />
               ) : (
                 <video controls className="w-full max-h-64 rounded-xl shadow">
                   <source src={mediaUrl} type="video/mp4" />
