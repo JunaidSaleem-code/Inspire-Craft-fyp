@@ -4,12 +4,10 @@ import GeneratedImage from "@/models/GeneratedImage";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
-type Context = {
-  params: { id: string };
-};
 
-export async function GET(req: NextRequest, context: Context) {
-  const  id  = context.params.id;
+
+export async function GET(req: NextRequest, {params}: { params: { id: string } }) {
+  const  id  = params.id;
   console.log("Request for image ID:", id);
 
   try {
