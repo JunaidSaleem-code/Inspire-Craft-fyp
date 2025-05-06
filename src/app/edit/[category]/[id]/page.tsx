@@ -44,19 +44,20 @@ export default function EditPage() {
       try {
          
         if (category === "artwork") {
-          const artwork = await apiClient.getArtworkById(id);
-          setTitle(artwork.title);
-          setDescription(artwork.description!);
-          setMediaUrl(artwork.mediaUrl);
-          setmediawidth(artwork.transformation?.width ?? 0);
-          setmediaheight(artwork.transformation?.height ?? 0);
-          setPrice(artwork.price);
+          const response = await apiClient.getArtworkById(id);
+          console.log('artwork',response);
+          setTitle(response.title);
+          setDescription(response.description!);
+          setMediaUrl(response.mediaUrl);
+          setmediawidth(response.transformation?.width ?? 0);
+          setmediaheight(response.transformation?.height ?? 0);
+          setPrice(response.price);
           setInitialValues({
-            title: artwork.title,
-            description: artwork.description!,
-            mediaUrl: artwork.mediaUrl,
-            price: artwork.price,
-            transformation: artwork.transformation,
+            title: response.title,
+            description: response.description!,
+            mediaUrl: response.mediaUrl,
+            price: response.price,
+            transformation: response.transformation,
           });
         } else if (category === "post") {
           const  post  = await apiClient.getPostById(id);
@@ -121,7 +122,7 @@ export default function EditPage() {
 
     try {
       setSubmitting(true);
-      const updatedData: Partial<Omit<EditableContent, 'transformation'>> = { title, description };
+      const updatedData: EditableContent = { title, description };
 
 
       if (category === "artwork") {

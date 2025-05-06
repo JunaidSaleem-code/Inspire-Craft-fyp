@@ -10,7 +10,7 @@ import Tutorial from "@/models/Tutorial";
 
 type PopulatedUser = {
   _id: string;
-  name: string;
+  username: string;
   avatar?: string;
 };
 
@@ -41,7 +41,7 @@ export async function GET(req: NextRequest, { params }: { params: { category: st
       commentableType: category,
       commentableId: new mongoose.Types.ObjectId(id),
     })
-      .populate("user", "name _id avatar")
+      .populate("user", "username _id avatar")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)

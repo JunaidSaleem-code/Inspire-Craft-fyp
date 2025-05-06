@@ -19,6 +19,7 @@ const CommentList = ({ contentId, category }: CommentListProps) => {
     setLoading(true);
     try {
       const {comments, totalCount} = await apiClient.getComments(category, contentId,  page);
+      console.log('comments', comments);
       setComments(comments!.map((comment: Comment) => ({ ...comment, _id: comment._id?.toString() })));
       setTotalComments(totalCount!);
     } catch (error) {

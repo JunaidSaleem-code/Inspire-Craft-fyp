@@ -11,13 +11,13 @@ import Image from "next/image";
 
 export interface Data {
   title: string;
-  description : string;
-  mediaUrl: string;
-  mediaFileId: string;
-  mediaType: "image" | "video";
-  category: "post" | "tutorial" | "artwork";
-  price: number;
-  currency: string;
+  description? : string;
+  mediaUrl?: string;
+  mediaFileId?: string;
+  mediaType?: "image" | "video";
+  category?: "post" | "tutorial" | "artwork";
+  price?: number;
+  currency?: string;
 }
 
 export default function UploadPage() {
@@ -232,10 +232,12 @@ export default function UploadPage() {
           {mediaUrl && (
             <div className="mt-4">
               {fileType === "image" ? (
-                <Image src={mediaUrl} alt="Uploaded" className="w-full max-h-64 object-contain rounded-xl shadow" />
+                <Image src={mediaUrl} alt="Uploaded"
+                width={500} height={500} className="w-full max-h-64 object-contain rounded-xl shadow" />
               ) : (
                 <video controls className="w-full max-h-64 rounded-xl shadow">
-                  <source src={mediaUrl} type="video/mp4" />
+                  <source src={mediaUrl} type="video/mp4" width={500} height={500}/>
+                  
                 </video>
               )}
             </div>

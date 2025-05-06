@@ -14,18 +14,19 @@ type PostUpdatePayload = Partial<{
   mediaUrl: string;
 }>;
 
-export async function GET( { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   await connectDB();
   const  {id}  = params;
-
+  
   if (!isValidObjectId(id)) {
-    return NextResponse.json({ error: 'Invalid post ID' }, { status: 400 });
+    return (NextResponse.json({ error: 'Invalid post ID' }, { status: 400 }),
+    console.log('Invalid post ID'))
   }
 
   try {
     const [post, likes] = await Promise.all([
       Post.findById(id).populate('user').lean(),
-      Like.find({ post: id }).populate('user', '_id name email avatar').lean(),
+      Like.find({ post: id }).populate('user', '_id username avatar').lean(),
     ]);
     if (!post) {
       return NextResponse.json({ error: 'Post not found' }, { status: 404 });

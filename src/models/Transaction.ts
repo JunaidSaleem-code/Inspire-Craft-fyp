@@ -27,7 +27,7 @@ const transactionSchema = new Schema<ITransaction>(
       default: "pending" 
     },
     paymentMethod: { type: String, enum: ["Stripe", "PayPal", "BankTransfer"], default: "Stripe" },
-    transactionId: { type: String, default: null }, // Payment gateway transaction ID
+    transactionId: { type: String, default: null ,unique: true, sparse: true}, // Payment gateway transaction ID
     expiresAt: { type: Date, default: () => new Date(Date.now() + 15 * 60 * 1000) }, // Default 15 min expiry
   },
   { timestamps: true }
@@ -35,6 +35,9 @@ const transactionSchema = new Schema<ITransaction>(
 
 // 🔹 Unique index to prevent duplicate transactions
 // transactionSchema.index({ buyer: 1, artwork: 1, paymentStatus: 1 }, { unique: true });
+transactionSchema.index({ buyer: 1, createdAt: -1 }); // Faster user history queries
+transactionSchema.index({ artwork: 1, paymentStatus: 1 }); // Useful for availability checks
+transactionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // Auto-delete expired pending transactions (optional)
 
 const Transaction = models?.Transaction || model<ITransaction>("Transaction", transactionSchema);
 export default Transaction;

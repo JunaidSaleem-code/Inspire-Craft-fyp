@@ -13,7 +13,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 export async function POST(req: NextRequest, { params }: { params: { artworkId: string } }) {
   try {
     await connectDB();
-
+    console.log('agaya');
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -62,10 +62,11 @@ export async function POST(req: NextRequest, { params }: { params: { artworkId: 
         artworkId: artwork._id.toString(),
         transactionId: transaction._id.toString(),
       },
-      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?tx=${transaction._id}`,
+      success_url: `${process.env.NEXT_PUBLIC_BASE_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_BASE_URL}/artwork/${artwork._id}`,
     });
-
+    transaction.transactionId = checkoutSession.id;
+    await transaction.save();
     return NextResponse.json({success: true, url: checkoutSession.url });
   } catch (err) {
     console.error("Checkout error:", err);

@@ -6,7 +6,7 @@ import  {apiClient} from "@/lib/api-client";
 import { useSession } from 'next-auth/react';
 import { formatDistanceToNow } from 'date-fns';
 import { Heart, MessageCircle, Pencil, Trash } from 'lucide-react';
-import CommentSection from '@/components/CommentSection';
+import CommentSection from '@/components/CommentSection-DESKTOP-Q7VSBOC';
 import LikesDropdown from '@/components/LikeDropdown';
 import { useNotification } from '@/components/Notification';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,9 +30,9 @@ export default function TutorialPage() {
   
   const fetchTutorial = useCallback(async () => {
     try {
-      const {tutorial,likes} = await apiClient.getTutorialById(id as string);
-      setTutorial(tutorial!);
-      setLiked(likes!.some((like: Like) => like?.user?._id === session?.user?.id));
+      const response = await apiClient.getTutorialById(id as string);
+      setTutorial(response);
+      setLiked(response.likes!.some((like: Like) => like?.user?._id === session?.user?.id));
     } catch {
       showNotification('Failed to fetch tutorial', 'error');
     } finally {

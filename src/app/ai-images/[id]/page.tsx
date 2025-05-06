@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { IKImage } from "imagekitio-next";
 import { useNotification } from "@/components/Notification";
 import { GeneratedImage } from "@/app/types/page";
+import Image from "next/image";
 
 export default function AIImageDetailsPage() {
   const [image, setImage] = useState< GeneratedImage>();
@@ -22,11 +23,10 @@ export default function AIImageDetailsPage() {
     const fetchImage = async () => {
       try {
         const data = await apiClient.getGeneratedImageById(id);
-        if (data.success) {
-          setImage(data.image);
-        } else {
-          showNotification("Failed to load image", "error");
-        }
+        
+          console.log(data);
+          setImage(data);
+        
       } catch {
         showNotification("Failed to load image", "error");
       } finally {
@@ -80,7 +80,7 @@ export default function AIImageDetailsPage() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white text-sm font-bold">
-                {user?.username?.[0]?.toUpperCase() || "A"}
+                <Image src={user?.avatar || ""} alt={user?.username || ""} width={40} height={40} className="w-10 h-10 rounded-full" />
               </div>
               <div>
                 <p className="font-semibold text-base flex items-center">

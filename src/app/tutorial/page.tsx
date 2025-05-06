@@ -13,7 +13,7 @@ export default function TutorialsPage() {
     const fetchTutorials = async () => {
       try {
         const response = await apiClient.getTutorials();
-        setTutorials(response?.data || []);
+        setTutorials(response || []);
       } catch (error) {
         console.error('Error fetching tutorials:', error);
       }

@@ -16,7 +16,7 @@ const PostList = () => {
       try {
         setLoading(true); // Set loading to true while fetching
         const response = await apiClient.getPosts();
-        setPosts(response.data);
+        setPosts(response);
       } catch (error) {
         setError('Failed to fetch posts');
         console.error(error);

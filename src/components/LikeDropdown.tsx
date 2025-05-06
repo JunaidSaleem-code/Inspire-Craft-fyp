@@ -49,7 +49,7 @@ const LikesDropdown = ({
         <div>
           {likes?.map((like: Like) => (
             <div key={like._id} className="text-sm py-1">
-              {like.user?.email}
+              {like.user?.username}
             </div>
           ))}
         </div>

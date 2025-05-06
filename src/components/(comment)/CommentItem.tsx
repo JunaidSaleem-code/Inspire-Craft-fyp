@@ -56,6 +56,8 @@ const CommentItem = ({ comment, category, onCommentUpdate }: CommentItemProps) =
           src={comment.user?.avatar || "/default-avatar.png"}
           alt={comment.user?.username || "User"}
           className="w-8 h-8 rounded-full"
+          width={32}
+          height={32}
         />
         <span className="font-semibold text-sm">
           {comment.user?.username || "Unknown"}

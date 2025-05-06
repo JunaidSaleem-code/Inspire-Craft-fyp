@@ -10,6 +10,7 @@ export interface User{
   isVerified?: boolean;
   bio?: string;
   password?: string;
+  status?: number;
 }
 export interface Like{
   _id?: string;
@@ -18,6 +19,7 @@ export interface Like{
   tutorial?: Tutorial;
   artwork?: Artwork;
   createdAt?: Date;
+  
 }
 export interface Tutorial{
   _id: string;
@@ -35,6 +37,8 @@ export interface Tutorial{
     width: number;
     quality?: number;
   }
+  success?: boolean;
+  message?: string;
 }
 
 export interface Post{
@@ -55,6 +59,7 @@ export interface Post{
   }
   createdAt?: Date;
   updatedAt?: Date;
+  success?: boolean;
 }
 export interface GeneratedImage {
   _id?: string;
@@ -83,6 +88,7 @@ export interface Comment {
   commentableId: Tutorial | Post | Artwork;
 }
 export interface Artwork {
+  success?: boolean;
   _id?: string;
   artist: User;
   title: string;
@@ -102,10 +108,11 @@ export interface Artwork {
     quality?: number;
   };
   likes: Like[];
-  comments: Comment[];
+  comments?: Comment[];
   artType?: string;
   slug?: string;
   createdAt?: Date;
+  message?: string;
 }
 export interface GenerateAIImageResponse {
   success: boolean;
@@ -161,8 +168,8 @@ export interface TutorialResponse{
 }
 export interface ArtworkResponse{ 
   success?: boolean, 
-   artwork?: Artwork,
-   likes?: Like[] 
+  artwork?: Artwork,
+  likes?: Like[] 
   message?: string
 }
 export interface CheckoutSessionResponse {

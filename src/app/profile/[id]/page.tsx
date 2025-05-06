@@ -51,6 +51,7 @@ export default function ProfilePage({ params }: { params: { userId?: string } })
       try {
         const userRes = await apiClient.getUserById(profileUserId);
         setUserProfile(userRes);
+        console.log('userRes', userRes);
 
         const artworksRes = await apiClient.getArtworksByUser(profileUserId);
         setArtworks(artworksRes);
@@ -59,6 +60,7 @@ export default function ProfilePage({ params }: { params: { userId?: string } })
         setFollowingCount(userRes.following?.length || 0);
 
         if (!isOwnProfile && session?.user?.id) {
+          if(userRes.followers)
           setIsFollowing(userRes.followers?.includes(session.user.id));
         }
       } catch {
@@ -75,15 +77,16 @@ export default function ProfilePage({ params }: { params: { userId?: string } })
 
     try {
       if(!profileUserId) return;
-      let data = [];
-      if (tab === "posts") {data = await apiClient.getPostsByUser(profileUserId);
-      console.log('data', data);}
-      else if (tab === "tutorials") data = await apiClient.getTutorialsByUser(profileUserId);
-      else if (tab === "aiImages") data = await apiClient.getAiImagesByUser(profileUserId);
-
-      if (tab === "posts") setPosts(data);
-      else if (tab === "tutorials") setTutorials(data);
-      else if (tab === "aiImages") setAiImages(data);
+      if (tab === "posts") {
+        const data: Post[] = await apiClient.getPostsByUser(profileUserId);
+        setPosts(data);
+      } else if (tab === "tutorials") {
+        const data: Tutorial[] = await apiClient.getTutorialsByUser(profileUserId);
+        setTutorials(data);
+      } else if (tab === "aiImages") {
+        const data: GeneratedImage[] = await apiClient.getAiImagesByUser(profileUserId);
+        setAiImages(data);
+      }
 
       setLoadedTabs((prev) => ({ ...prev, [tab]: true }));
     } catch {
@@ -115,6 +118,8 @@ export default function ProfilePage({ params }: { params: { userId?: string } })
             <Image
               src={userProfile?.avatar || "/default-avatar.png"}
               alt="Profile"
+              width={128}
+              height={128}
               className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
             />
             <div>

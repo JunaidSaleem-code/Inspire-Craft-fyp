@@ -45,7 +45,7 @@ export const apiClient = {
   getUserById: (userId: string) => request<User>('GET', `/api/users/${userId}`),
   updateUser:  (userId: string, userData: Partial<User>) => request<User>('PATCH', `/api/users/${userId}`, userData),
   deleteUser:  (userId: string) => request<null>('DELETE', `/api/users/${userId}`),
-  toggleFollow: (userId: string) => request<User>('POST', `/api/users/${userId}/toggle-follow`),
+  toggleFollow: (userId: string) => request<{ isFollowing: boolean ; followerCount: number}>('POST', `/api/users/${userId}/toggle-follow`),
 
   // Content by user
   getArtworksByUser:  (userId: string) => request<Artwork[]> ('GET', `/api/artwork/user/${userId}`),
@@ -74,18 +74,18 @@ export const apiClient = {
 
   // Post
   getPosts: () => request<Post[]>('GET', '/api/post'),
-  getPostById: (postId: string) => request<PostResponse>('GET', `/api/post/${postId}`),
+  getPostById: (id: string) => request<Post>('GET', `/api/post/${id}`),
   createPost: (postData: Post) => request<CreatePostResponse>('POST', '/api/post', postData),
   deletePost: (postId: string) => request<PostResponse>('DELETE', `/api/post/${postId}`),
 
   // Tutorials
   getTutorials: () => request<Tutorial[]>('GET', '/api/tutorial'),
-  getTutorialById: (tutorialId: string) => request<TutorialResponse>('GET', `/api/tutorial/${tutorialId}`),
+  getTutorialById: (tutorialId: string) => request<Tutorial>('GET', `/api/tutorial/${tutorialId}`),
   deleteTutorial: (tutorialId: string) => request<TutorialResponse>('DELETE', `/api/tutorial/${tutorialId}`),
 
   // Artworks
   getArtworks: () => request<Artwork[]>('GET', '/api/artwork'),
-  getArtworkById: (artworkId: string) => request<ArtworkResponse>('GET', `/api/artwork/${artworkId}`),
+  getArtworkById: (artworkId: string) => request<Artwork>('GET', `/api/artwork/${artworkId}`),
   buyArtworkById: (artworkId: string) => request<CheckoutSessionResponse>('POST', `/api/create-checkout-session/${artworkId}`),
   markArtworkAsSold: (artworkId: string) => request<ArtworkResponse>('PATCH', `/api/artwork/${artworkId}/mark-sold`),
   deleteArtwork: (artworkId: string) => request<ArtworkResponse>('DELETE', `/api/artwork/${artworkId}`),
@@ -96,5 +96,5 @@ export const apiClient = {
   getPublicAIImages: () => request<GeneratedImage[]>('GET', '/api/ai-images/publiced'),
   toggleImageVisibility: (imageId: string, isPublic: boolean) =>
     request<ToggleVisibilityResponse>('PATCH', `/api/ai-images/${imageId}/visibility`, { isPublic }),
-  getGeneratedImageById: (imageId: string) => request<GenerateAIImageResponse>('GET', `/api/ai-images/${imageId}`),
+  getGeneratedImageById: (imageId: string) => request<GeneratedImage>('GET', `/api/ai-images/${imageId}`),
 };

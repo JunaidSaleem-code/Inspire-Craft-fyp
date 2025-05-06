@@ -19,10 +19,10 @@ import Like from "@/models/Like";
 export async function GET(req: Request, { params }: { params: { id: string } }) {
   try {
     await connectDB();
-    const artwork = await Artwork.findById(params.id).populate("artist", "email").lean();
+    const artwork = await Artwork.findById(params.id).populate("artist", "email username avatar").lean();
     if (!artwork) return NextResponse.json({ success: false, message: "Artwork not found" }, { status: 404 });
 
-    const likes = await Like.find({ artwork: params.id }).populate("user", "name email image").lean();
+    const likes = await Like.find({ artwork: params.id }).populate("user", "username email avatar").lean();
 
     return NextResponse.json({ success: true,  ...artwork, likes  });
   } catch (error) {

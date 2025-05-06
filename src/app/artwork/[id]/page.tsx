@@ -7,51 +7,13 @@ import { useRouter, useParams } from 'next/navigation';
 import  {apiClient} from "@/lib/api-client";
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from 'next-auth/react';
-import CommentSection from '@/components/CommentSection';
+import CommentSection from '@/components/CommentSection-DESKTOP-Q7VSBOC';
 import { formatDistanceToNow } from 'date-fns';
 import LikesDropdown from '@/components/LikeDropdown';
 import { useNotification } from '@/components/Notification';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Artwork, Like } from '@/app/types/page';
-// export interface Artwork {
-//   _id?: Types.ObjectId | string;
-//   title: string;
-//   description: string;
-//   mediaType: 'image' | 'video';
-//   mediaUrl: string;
-//   price: number;
-//   currency: string;
-//   isSold: boolean;
-//   createdAt?: Date;
-//   updatedAt?: Date;
-//   artist: {
-//     _id: Types.ObjectId | string;
-//     name?: string;
-//     email?: string;
-//     avatarUrl?: string;
-//   };
-//   likes: {
-//     _id?: string;
-//     user: {
-//       _id: Types.ObjectId | string;
-//       email?: string;
-//       name?: string;
-//       avatarUrl?: string;
-//     };
-//   }[];
-//   comments: {
-//     _id?: string;
-//     user: {
-//       _id: Types.ObjectId | string;
-//       name?: string;
-//       email?: string;
-//       avatarUrl?: string;
-//     };
-//     content: string;
-//     createdAt?: Date;
-//   }[];
-// }
 
 
 export default function ArtworkDetail() {
@@ -70,9 +32,10 @@ export default function ArtworkDetail() {
   
   const fetchArtwork = useCallback(async () => {
     try {
-      const {artwork, likes} = await apiClient.getArtworkById(id!.toString());
+      const artwork = await apiClient.getArtworkById(id!.toString());
+      // console.log('response', artwork);
       setArtwork(artwork);
-      setLikes(likes || []);
+      setLikes(artwork.likes || []);
     } catch {
       showNotification('Failed to fetch artwork', 'error');
     } finally {
@@ -153,8 +116,6 @@ export default function ArtworkDetail() {
     if (!artwork || !artwork._id) return;
   
     try {
-      console.log('artwork._id', artwork._id);
-      console.log(typeof artwork._id);
       const response = await apiClient.buyArtworkById(artwork._id.toString());
       console.log('response', response);
       if (response?.url) {

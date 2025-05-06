@@ -15,7 +15,7 @@ export default function EditProfilePage({ params }: { params: { userId: string }
   const router = useRouter();
   const { showNotification } = useNotification();
 
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [bio, setBio] = useState("");
   const [avatar, setAvatar] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -28,7 +28,7 @@ export default function EditProfilePage({ params }: { params: { userId: string }
     const fetchProfile = async () => {
       try {
         const data = await apiClient.getUserById(userId);
-        setName(data.username || "");
+        setUsername(data.username || "");
         setBio(data.bio || "");
         setAvatar(data.avatar || "");
       } catch {
@@ -72,7 +72,7 @@ export default function EditProfilePage({ params }: { params: { userId: string }
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await apiClient.updateUser(userId, { name, bio, avatar });
+      await apiClient.updateUser(userId, { username, bio, avatar });
       showNotification("Profile updated successfully", "success");
       router.push(`/profile/${userId}`);
     } catch {
@@ -89,7 +89,7 @@ export default function EditProfilePage({ params }: { params: { userId: string }
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-indigo-600 mb-1">Name</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} required />
+            <Input value={username} onChange={(e) => setUsername(e.target.value)} required />
           </div>
 
           <div>

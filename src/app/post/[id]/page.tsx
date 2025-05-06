@@ -1,17 +1,17 @@
 'use client';
 
 import { Heart, MessageCircle, Trash, Pencil } from 'lucide-react';
-import { IKImage } from 'imagekitio-next';
 import { Suspense, useEffect, useState,useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import  {apiClient} from "@/lib/api-client";
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSession } from 'next-auth/react';
-import CommentSection from '@/components/CommentSection';
+import CommentSection from '@/components/CommentSection-DESKTOP-Q7VSBOC';
 import { formatDistanceToNow } from 'date-fns';
 import LikesDropdown from '@/components/LikeDropdown';
 import { useNotification } from '@/components/Notification';
 import { Like, Post } from '@/app/types/page';
+import Image from 'next/image';
 
 
 export default function PostDetail() {
@@ -29,10 +29,12 @@ export default function PostDetail() {
   
   const fetchPost = useCallback(async () => {
     try {
-      const {post,likes} = await apiClient.getPostById(id!.toString());
-      setPost(post);
-      setLikes(likes);
-      console.log('post', post);
+      const response = await apiClient.getPostById(id!.toString());
+      console.log('response', response);
+      if (response.success) {
+        setPost(response); // Set full post object
+        setLikes(response.likes || []); // Extract likes array
+      }
     } catch {
       showNotification('Failed to fetch post', 'error');
       // console.error('Failed to fetch post', error);
@@ -88,7 +90,6 @@ export default function PostDetail() {
       }
     } catch {
       showNotification('Delete failed', 'error');
-      // console.error('Delete failed:', error);
     }
   };
 
@@ -121,16 +122,12 @@ export default function PostDetail() {
 >
 
         {post.mediaType === 'image' ? (
-          <IKImage
-            // urlEndpoint={IMAGEKIT_BASE_URL}
+          <Image
             src={post.mediaUrl}
             alt={post.title}
             className=" max-h-full w-full object-cover"
             width={post.transformation?.width}
             height={post.transformation?.height}
-            transformation={[{ quality: 'auto' }]}
-            lqip={{ active: true, quality: 20, blur: 20 }}
-
           />
         ) : (
           <video

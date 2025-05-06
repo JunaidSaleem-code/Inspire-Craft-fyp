@@ -1,20 +1,26 @@
-// users/[id]/route.ts
-import { NextApiRequest, NextApiResponse } from "next";
-import {connectDB} from "@/lib/db";
+import { NextRequest, NextResponse } from "next/server";
+import { connectDB } from "@/lib/db";
 import User from "@/models/User";
-import { getSession } from "next-auth/react";
 import bcrypt from "bcryptjs";
-import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-export async function GET(req: NextApiRequest, {params}: {params: {userId: string}}) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { userId: string } }
+) {
   try {
     await connectDB();
     const userId = params.userId;
     const user = await User.findById(userId)
-    .select("-password")
-    .populate("following", "username avatar")
-    .populate("followers", "username avatar");
-    if (!user) return NextResponse.json({ message: "User not found" }, { status: 404 });
+      .select("-password")
+      .populate("following", "username avatar")
+      .populate("followers", "username avatar");
+
+    if (!user) {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
+    }
+
     return NextResponse.json(user, { status: 200 });
   } catch (error) {
     console.error("Error fetching user profile:", error);
@@ -22,26 +28,54 @@ export async function GET(req: NextApiRequest, {params}: {params: {userId: strin
   }
 }
 
-export async function PUT(req: NextApiRequest, res: NextApiResponse) {
-  await connectDB();
-  const session = await getSession({ req });
-  if (!session || session.user.id !== req.query.userId)
-    return res.status(403).json({ message: "Unauthorized" });
+export async function PUT(
+  req: NextRequest,
+  { params }: { params: { userId: string } }
+) {
+  try {
+    await connectDB();
+    const session = await getServerSession(authOptions);
 
-  const { email, password } = req.body;
-  const updateData:{ email: string; password?: string } = { email };
-  if (password) updateData.password = await bcrypt.hash(password, 10);
+    if (!session || session.user.id !== params.userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+    }
 
-  const updatedUser = await User.findByIdAndUpdate(req.query.userId, updateData, { new: true });
-  return res.status(200).json(updatedUser);
+    const { email, password } = await req.json();
+
+    const updateData: { email: string; password?: string } = { email };
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      params.userId,
+      updateData,
+      { new: true }
+    ).select("-password");
+
+    return NextResponse.json(updatedUser, { status: 200 });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+  }
 }
 
-export async function DELETE(req: NextApiRequest, res: NextApiResponse) {
-  await connectDB();
-  const session = await getSession({ req });
-  if (!session || session.user.id !== req.query.userId)
-    return res.status(403).json({ message: "Unauthorized" });
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { userId: string } }
+) {
+  try {
+    await connectDB();
+    const session = await getServerSession(authOptions);
 
-  await User.findByIdAndDelete(req.query.userId);
-  return res.status(200).json({ message: "User deleted" });
+    if (!session || session.user.id !== params.userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+    }
+
+    await User.findByIdAndDelete(params.userId);
+    return NextResponse.json({ message: "User deleted" }, { status: 200 });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+  }
 }
