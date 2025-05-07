@@ -64,11 +64,13 @@ export default function UploadPage() {
   };
 
   const handleStartUpload = () => {
+    console.log("start upload");
     setUploading(true);
     setError(null);
   };
 
   const handleSuccess = (res: IKUploadResponse) => {
+    console.log('in success', res);
     setUploading(false);
     setError(null);
     setMediaUrl(res.url);
@@ -77,6 +79,7 @@ export default function UploadPage() {
   };
 
   const handleError = (err: { message: string }) => {
+    console.log('err', err);
     setError(err.message || "Upload failed.");
     setUploading(false);
   };
@@ -130,7 +133,7 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-10 max-w-3xl">
+    <div className="container mx-auto px-4 py-10 max-w-3xl mb-10">
       <div className="bg-gradient-to-tr from-white via-indigo-50 to-purple-100 border border-purple-200 p-8 rounded-3xl shadow-xl">
         <h1 className="text-3xl font-bold text-center text-indigo-700 mb-6">📤 Upload Your Content</h1>
 

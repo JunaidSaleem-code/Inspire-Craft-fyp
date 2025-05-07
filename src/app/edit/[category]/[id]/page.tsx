@@ -6,7 +6,7 @@ import { apiClient } from "@/lib/api-client";
 import { Loader2 } from "lucide-react";
 import { useNotification } from "@/components/Notification";
 import { useParams } from "next/navigation";
-import { IKImage } from "imagekitio-next";
+import Image from "next/image";
 
 type EditableContent = {
   title: string;
@@ -211,8 +211,8 @@ export default function EditPage() {
                 //   alt="Preview"
                 //   className="w-full max-h-64 object-contain rounded-xl shadow"
                 // />
-                <IKImage path={mediaUrl} src={mediaUrl} className="w-full max-h-64 rounded-xl shadow" 
-                lqip={{active: true, quality: 20}}
+                <Image
+                 src={mediaUrl} className="w-full max-h-64 rounded-xl shadow" 
                 alt={mediaUrl}
                 height={mediaheight}
                 width={mediawidth}/>

@@ -167,11 +167,11 @@ export async function POST(req: NextRequest) {
       useUniqueFileName: true,
       folder: "ai-images",
     });
-
+    console.log("uploaded::", uploaded);
     const newImage = await GeneratedImage.create({
       user: userId,
       prompt,
-      mediaUrl: uploaded.filePath,
+      mediaUrl: uploaded.url,
       isPublic: false,
       source: "FLUX.1-dev",
       transformation: fluxConfig,

@@ -2,7 +2,8 @@
 
 import { GeneratedImage } from "@/app/types/page";
 import { AI_IMAGE_DIMENSIONS } from "@/models/GeneratedImage";
-import { IKImage } from "imagekitio-next";
+import Image from "next/image";
+
 import Link from "next/link";
 
 interface Props {
@@ -16,12 +17,10 @@ export default function AIImageCard({ image }: Props) {
       className="block group border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition"
     >
       <div className="relative w-full aspect-[4/3]">
-      <IKImage 
-  urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
-  path={image.mediaUrl} 
-  transformation={[
-    { width: AI_IMAGE_DIMENSIONS.default.width.toString(), height: AI_IMAGE_DIMENSIONS.default.height.toString() },
-  ]}
+      <Image 
+  src={image.mediaUrl} 
+   width={ AI_IMAGE_DIMENSIONS.default.width} height= {AI_IMAGE_DIMENSIONS.default.height}
+   loading="lazy"
   alt= "AI Image"
 />
       </div>

@@ -7,7 +7,6 @@ import  {apiClient} from "@/lib/api-client";
 import { Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { IKImage } from "imagekitio-next";
 import { useNotification } from "@/components/Notification";
 import { GeneratedImage } from "@/app/types/page";
 import Image from "next/image";
@@ -61,15 +60,12 @@ export default function AIImageDetailsPage() {
       <div className="rounded-2xl shadow-lg bg-white dark:bg-neutral-900 overflow-hidden">
         {/* Image */}
         <div className="relative aspect-[4/3]">
-          <IKImage
-            path={image?.mediaUrl}
-            transformation={[{
-              width: image.transformation?.width.toString() || "1024",
-              height: image.transformation?.height.toString() || '1024',
-            }]}
+          <Image
+            src={image?.mediaUrl}
+              width= {image.transformation?.width || "1024"}
+              height= {image.transformation?.height || '1024'}
             alt={image.prompt}
             loading="eager"
-            priority
             className="w-full h-auto rounded-t-2xl"
           />
         </div>

@@ -1,7 +1,6 @@
 'use client';
 
 import { Heart, MessageCircle, Trash, Pencil } from 'lucide-react';
-import { IKImage } from 'imagekitio-next';
 import { Suspense, useEffect, useState,useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import  {apiClient} from "@/lib/api-client";
@@ -14,6 +13,7 @@ import { useNotification } from '@/components/Notification';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Artwork, Like } from '@/app/types/page';
+import Image from 'next/image';
 
 
 export default function ArtworkDetail() {
@@ -135,21 +135,21 @@ export default function ArtworkDetail() {
       {/* Media Section */}
       <div className="relative w-full bg-black flex items-center justify-center">
         {artwork.mediaType === 'image' ? (
-          <IKImage
-            // urlEndpoint={IMAGEKIT_BASE_URL}
+          <Image
             src={artwork.mediaUrl}
             alt={artwork.title}
             width={1080}
             height={1350}
             className="w-full object-cover"
-            transformation={[{quality: 'auto'}]}
-            lqip={{active: true, quality: 20, blur:20}}
+            loading='eager'
           />
         ) : (
           <video
           controls
           preload="metadata"
           className="rounded-xl max-h-full w-full object-cover"
+          width={1080}
+          height={1350}
         >
           <source src={artwork.mediaUrl} type="video/mp4" />
         </video>

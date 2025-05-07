@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { motion } from "framer-motion";
 import  {apiClient} from "@/lib/api-client";
-import { IKImage } from "imagekitio-next";
 import { GeneratedImage } from "@/app/types/page";
+import Image from "next/image";
 
 export default function AIGeneratePage() {
   const [prompt, setPrompt] = useState("");
@@ -64,16 +64,12 @@ export default function AIGeneratePage() {
   >
     {/* Image Box */}
     <div className="w-full overflow-hidden rounded-xl border border-white/10 bg-white">
-      <IKImage
-        urlEndpoint={process.env.NEXT_PUBLIC_URL_ENDPOINT}
-        path={image.mediaUrl}
-        transformation={[
-          {
-            width: image.transformation?.width.toString() || '1024',
-            height: image.transformation?.height.toString() || '1024',
-          },
-        ]}
+      <Image
+        src={image.mediaUrl}
+            width= {image.transformation?.width || 1024}
+            height= {image.transformation?.height || 1024}
         alt={image.prompt}
+        loading="eager"
         className="w-full h-auto object-contain"
       />
     </div>

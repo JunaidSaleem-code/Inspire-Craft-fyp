@@ -1,7 +1,7 @@
 'use client';
 
 import { Post } from '@/app/types/page';
-import { IKImage } from 'imagekitio-next';
+import Image from 'next/image';
 import Link from 'next/link';
 
 const _DIMENSIONS = {
@@ -22,13 +22,13 @@ export default function PostCard({ post }: { post: Post}) {
     <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 mb-6">
       <div className="relative w-full">
         {post.mediaType === 'image' ? (
-          <IKImage
-            path={post.mediaUrl.startsWith('http') ? undefined : post.mediaUrl}
-            src={post.mediaUrl.startsWith('http') ? post.mediaUrl : undefined}
+          <Image
+            src={post.mediaUrl}
             alt={post.title}
             className="w-full object-cover aspect-square sm:aspect-video"
             width={_DIMENSIONS.square.width}
             height={_DIMENSIONS.square.height}
+            loading='lazy'
           />
         ) : (
           <video
