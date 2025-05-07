@@ -9,22 +9,29 @@ import Link from "next/link";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { showNotification } = useNotification();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      showNotification(result.error, "error");
-    } else {
-      showNotification("Login successful!", "success");
-      router.push("/");
+    try {
+      setLoading(true);
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+      setLoading(false);
+      if (result?.error) {
+        showNotification(result.error, "error");
+      } else {
+        router.push("/");
+        showNotification("Login successful!", "success");
+      }
+    } catch {
+      setLoading(false);
+      showNotification("Something went wrong. Try again", "error");
     }
   };
 
@@ -60,9 +67,10 @@ export default function Login() {
         </div>
         <button
           type="submit"
+          disabled={loading}
           className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
         <p className="text-center mt-4">
           Don&apos;t have an account?{" "}

@@ -8,7 +8,9 @@ import Link from "next/link";
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  
   const router = useRouter();
   const { showNotification } = useNotification();
 
@@ -24,7 +26,7 @@ export default function Register() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password,username }),
       });
 
       const data = await res.json();
@@ -33,8 +35,8 @@ export default function Register() {
         throw new Error(data.error || "Registration failed");
       }
 
-      showNotification("Registration successful! Please log in.", "success");
       router.push("/login");
+      showNotification("Registration successful! Please log in.", "success");
     } catch (error) {
       showNotification(
         error instanceof Error ? error.message : "Registration failed",
@@ -56,6 +58,19 @@ export default function Register() {
             id="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full px-3 py-2 border rounded"
+          />
+        </div>
+        <div>
+          <label htmlFor="username" className="block mb-1">
+            Username
+          </label>
+          <input
+            type="text"
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             required
             className="w-full px-3 py-2 border rounded"
           />
