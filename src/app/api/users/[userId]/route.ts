@@ -79,3 +79,26 @@ export async function DELETE(
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: { userId: string } }
+) {
+  try {
+    await connectDB();
+    const session = await getServerSession(authOptions);
+    if (!session || session.user.id !== params.userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+    }
+
+    const updateData = await req.json();
+    const updatedUser = await User.findByIdAndUpdate(params.userId, updateData, {
+      new: true,
+    }).select("-password");
+
+    return NextResponse.json(updatedUser, { status: 200 });
+  } catch (error) {
+    console.error("Error patching user:", error);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+  }
+}
