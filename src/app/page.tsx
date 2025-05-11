@@ -23,6 +23,9 @@ export default function HomePage() {
           apiClient.getTutorials(),
           apiClient.getPosts(),
         ]);
+        console.log('artworksData', artworksData);
+        console.log('tutorialsData', tutorialsData);
+        console.log('postsData', postsData);
         setArtworks(artworksData || []);
         setTutorials(tutorialsData || []);
         setPosts(postsData || []);

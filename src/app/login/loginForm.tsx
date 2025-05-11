@@ -34,6 +34,8 @@ export default function LoginForm() {
         showNotification(result.error, "error");
       } else {
         const url = new URL(result?.url || "/", window.location.origin);
+        console.log('url.origin', window.location.origin);
+        console.log('url', url);
         router.push(url.pathname + url.search);
         showNotification("Login successful!", "success");
       }
