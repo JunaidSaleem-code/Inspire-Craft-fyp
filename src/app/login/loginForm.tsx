@@ -33,7 +33,8 @@ export default function LoginForm() {
       if (result?.error) {
         showNotification(result.error, "error");
       } else {
-        router.push(result?.url || "/");
+        const url = new URL(result?.url || "/", window.location.origin);
+        router.push(url.pathname + url.search);
         showNotification("Login successful!", "success");
       }
     } catch {
