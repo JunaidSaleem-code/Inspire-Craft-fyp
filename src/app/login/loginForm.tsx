@@ -2,12 +2,11 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter} from "next/navigation";
 import { useNotification } from "../../components/Notification";
 import Link from "next/link";
 
 export default function LoginForm() {
-  const searchParams = useSearchParams();
   const router = useRouter();
   const { showNotification } = useNotification();
 
@@ -19,14 +18,17 @@ export default function LoginForm() {
     e.preventDefault();
     try {
       setLoading(true);
-      const callbackUrl = searchParams.get("callbackUrl") || "/";
+      const callbackUrl = "/";
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
         callbackUrl,
       });
+
+      console.log('signin result:',result);
       setLoading(false);
+      
       if (result?.error) {
         showNotification(result.error, "error");
       } else {

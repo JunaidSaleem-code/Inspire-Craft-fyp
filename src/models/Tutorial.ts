@@ -40,6 +40,7 @@ const TutorialSchema: Schema = new Schema(
   { timestamps: true }
 );
 
+TutorialSchema.index({ title: "text", description: "text" });
 
 
 TutorialSchema.pre('findOneAndDelete', async function (next) {
@@ -52,7 +53,7 @@ TutorialSchema.pre('findOneAndDelete', async function (next) {
       console.log('Associated likes deleted',res);
       
       // Clean up comments if needed (optional)
-      // await mongoose.model("Comment").deleteMany({ post: doc._id });
+      await mongoose.model("Comment").deleteMany({ tutorial: doc._id });
       
       // Delete the associated media from ImageKit
       if (doc.mediaFileId) {

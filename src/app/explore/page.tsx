@@ -1,99 +1,185 @@
-// "use client";
+'use client';
 
-// import { useEffect, useState } from "react";
-// import { Card, CardContent } from "@/components/ui/card";
-// import { IKImage } from "imagekitio-next";
-// import { Heart, Bookmark } from "lucide-react";
-// import { Artwork } from "../types/page";
+import { useState } from 'react';
+import { apiClient } from '@/lib/api-client';
+import ArtworkCard from '@/components/ArtworkCard';
+import PostCard from '@/components/PostCard';
+import TutorialCard from '@/components/TutorialCard';
+import AIImageCard from '@/components/AIImageCard';
+import { Button } from '@/components/ui/button';
+import { Artwork, GeneratedImage, Post, SearchResult, Tutorial } from '../types/page';
 
-// export default function ExplorePage() {
-//   const [artworks, setArtworks] = useState<Artwork[]>([]);
-//   // const [tutorials, setTutorials] = useState<ITutorial[]>([]);
-//   const IMAGEKIT_BASE_URL = process.env.NEXT_PUBLIC_URL_ENDPOINT;
+const SearchComponent = () => {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState<SearchResult>({ artworks: [], posts: [], tutorials: [], generatedImages: [] });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [filter, setFilter] = useState<'artwork' | 'post' | 'tutorial' | 'image' | 'all'>('all');
+  const [page, setPage] = useState(1);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+const [artworks, setArtworks] = useState<Artwork[]>([]);
+const [posts, setPosts] = useState<Post[]>([]);
+const [tutorials, setTutorials] = useState<Tutorial[]>([]);
+const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const handleSearch = async () => {
+    if (!query) {
+      setError('Please enter a search query');
+      return;
+    }
 
-//   useEffect(() => {
-//     async function fetchData() {
-//       try {
-//         const artworkRes = await fetch("/api/artwork");
-//         // const tutorialRes = await fetch("/api/tutorials");
+    setLoading(true);
+    setError('');
 
-//         if (!artworkRes.ok 
-//           // || !tutorialRes.ok
-//         ) {
-//           throw new Error("Failed to fetch data");
-//         }
+    try {
+      const searchResults = await apiClient.search(
+        query,
+        filter === 'all' ? undefined : filter,
+        page,
+        10,
+        minPrice ? parseFloat(minPrice) : undefined,
+        maxPrice ? parseFloat(maxPrice) : undefined
+      );
+      setResults(searchResults);
+      setArtworks(searchResults.artworks || []);
+      setPosts(searchResults.posts || []);
+      setTutorials(searchResults.tutorials || []);
+      setGeneratedImages(searchResults.generatedImages || []);
+    } catch (error) {
+      console.error(error);
+      setError('An error occurred while fetching search results');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-//         const artworkData = await artworkRes.json();
-//         // const tutorialData = await tutorialRes.json();
+  return (
+    <div className="container mx-auto px-4 py-10">
+      {/* Search Form */}
+      <div className="mb-8 space-y-4">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search artworks, posts, tutorials..."
+          className="w-full px-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring focus:border-blue-500"
+        />
 
-//         // console.log("Fetched Artworks:", artworkData);
-//         // console.log("Fetched Tutorials:", tutorialData);
+        <div className="flex flex-wrap gap-4">
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as 'artwork' | 'post' | 'tutorial' | 'image' | 'all')}
+            className="px-4 py-2 border rounded-md"
+          >
+            <option value="all">All</option>
+            <option value="artwork">Artworks</option>
+            <option value="post">Posts</option>
+            <option value="tutorial">Tutorials</option>
+            <option value="image">Generated Images</option>
+          </select>
 
-//         setArtworks(
-//           [artworkData]
-//           // Array.isArray(artworkData)
-//           //   ? artworkData.map((art) => ({
-//           //       ...art,
-//           //       _id: art._id?.toString(),
-//           //       artist: { ...art.artist, _id: art.artist?._id?.toString() },
-//           //     }))
-//           //   : []
-//         );
-//         // setTutorials(
-//         //   Array.isArray(tutorialData)
-//         //     ? tutorialData.map((tut) => ({ ...tut, _id: tut._id?.toString() }))
-//         //     : []
-//         // );
-//       } catch (error) {
-//         console.error("Error fetching data:", error);
-//         setArtworks([]);
-//         // setTutorials([]);
-//       }
-//     }
-//     fetchData();
-//   }, []);
+          {filter === 'artwork' && (
+            <>
+              <input
+                type="number"
+                min={1}
+                value={minPrice}
+                onChange={(e) => setMinPrice(e.target.value)}
+                placeholder="Min Price"
+                className="w-32 px-3 py-2 border rounded-md"
+              />
+              <input
+                type="number"
+                min={1}
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                placeholder="Max Price"
+                className="w-32 px-3 py-2 border rounded-md"
+              />
+            </>
+          )}
+        </div>
 
-//   // console.log("State Artworks:", artworks);
-//   // console.log("State Tutorials:", tutorials);
+        <Button onClick={handleSearch} disabled={loading} className="w-full text-lg">
+          {loading ? 'Searching...' : 'Search'}
+        </Button>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+      </div>
 
-//   if (!artworks.length 
-//     // && !tutorials.length
-//   ) {
-//     return <p className="text-center text-gray-500">No artworks or tutorials available</p>;
-//   }
+      {/* Results */}
+      {results && (
+        <div className="space-y-12">
+          {artworks.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Artworks</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {artworks.map((art: Artwork) => (
+                  <ArtworkCard key={art._id} artwork={art} />
+                ))}
+              </div>
+            </section>
+          )}
 
-//   return (
-//     <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
-//       {[...(artworks ?? [])
-//       // , ...(tutorials ?? [])
-//     ].map((item) => (
-//         <Card key={item._id?.toString() || Math.random().toString()} className="relative overflow-hidden rounded-xl shadow-lg">
-//           <CardContent className="p-0">
-          
-//             {item.mediaUrl ? (
-//               <IKImage
-//                 urlEndpoint={IMAGEKIT_BASE_URL}
-//                 path={!item.mediaUrl.startsWith("http") ? item.mediaUrl : undefined}
-//                 src={item.mediaUrl.startsWith("http") ? item.mediaUrl : undefined}
-//                 transformation={[{ height: "600", width: "600" }]}
-//                 alt={item.title}
-//                 className="w-full h-[400px] object-cover"
-//               />
-//             ) :  (
-//               <p className="w-full h-[400px] flex items-center justify-center bg-gray-200">
-//                 No image available
-//               </p>
-//             )}
-//           </CardContent>
-//           <div className="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 text-white p-4 flex justify-between items-center">
-//             <h3 className="text-lg font-semibold">{item.title}</h3>
-//             <div className="flex gap-2">
-//               <Heart className="w-5 h-5 cursor-pointer" />
-//               <Bookmark className="w-5 h-5 cursor-pointer" />
-//             </div>
-//           </div>
-//         </Card>
-//       ))}
-//     </section>
-//   );
-// }
+          {posts.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Posts</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {posts.map((post: Post) => (
+                  <PostCard key={post._id} post={post} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {tutorials.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Tutorials</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {tutorials.map((t: Tutorial) => (
+                  <TutorialCard key={t._id} tutorial={t} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {generatedImages.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-semibold mb-4">Generated Images</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {generatedImages.map((img: GeneratedImage) => (
+                  <AIImageCard key={img._id} image={img} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Pagination */}
+          <div className="flex justify-between items-center mt-10">
+            <Button
+              variant="outline"
+              disabled={page === 1}
+              onClick={() => {
+                setPage((p) => Math.max(1, p - 1));
+                handleSearch();
+              }}
+            >
+              Previous
+            </Button>
+            <span className="text-gray-700">Page {page}</span>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setPage((p) => p + 1);
+                handleSearch();
+              }}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SearchComponent;

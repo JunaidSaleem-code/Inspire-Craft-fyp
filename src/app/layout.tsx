@@ -20,7 +20,9 @@ export default function RootLayout({
       <body>
         <Providers >
         <Header/>
+        <div className="mb-10">
         {children}
+        </div>
         <MobileNav/>
         </Providers>
           

@@ -41,6 +41,37 @@ export const apiClient = {
   logout:   ()                          => request<null>       ('POST', '/api/auth/logout'),
   getCurrentUser: ()                   => request<User | null> ('GET', '/api/auth/me'),
 
+  // Search API
+  // search: (query: string, category?: 'artwork' | 'post' | 'tutorial' | 'image') =>
+  //   request<{
+  //     artworks?: Artwork[],
+  //     posts?: Post[],
+  //     tutorials?: Tutorial[],
+  //     generatedImages?: GeneratedImage[],
+  //   }>(
+  //     'GET',
+  //     `/api/explore?q=${encodeURIComponent(query)}${category ? `&category=${category}` : ''}`
+  //   ),  
+  // lib/api-client.ts
+search: (
+  query: string,
+  category?: 'artwork' | 'post' | 'tutorial' | 'image',
+  page: number = 1,
+  limit: number = 10,
+  minPrice?: number,
+  maxPrice?: number
+) =>
+  request<{
+    artworks?: Artwork[],
+    posts?: Post[],
+    tutorials?: Tutorial[],
+    generatedImages?: GeneratedImage[],
+  }>(
+    'GET',
+    `/api/explore?q=${encodeURIComponent(query)}${category ? `&category=${category}` : ''}&page=${page}&limit=${limit}${minPrice !== undefined ? `&minPrice=${minPrice}` : ''}${maxPrice !== undefined ? `&maxPrice=${maxPrice}` : ''}`
+  ),
+
+
   // User
   getUserById: (userId: string) => request<User>('GET', `/api/users/${userId}`),
   updateUser:  (userId: string, userData: Partial<User>) => request<User>('PATCH', `/api/users/${userId}`, userData),

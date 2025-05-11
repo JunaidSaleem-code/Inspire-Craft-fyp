@@ -54,7 +54,7 @@ export default function HomePage() {
         <h2 className="text-3xl font-semibold mb-4">Featured Artworks</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {artworks.slice(0, 6).map((artwork) => (
-            <ArtworkCard key={artwork._id?.toString()} artwork={artwork} />
+            <ArtworkCard key={artwork._id} artwork={artwork} />
           ))}
         </div>
       </section>
@@ -64,9 +64,7 @@ export default function HomePage() {
         <h2 className="text-3xl font-semibold mb-4">Community Posts</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {posts.slice(0, 6).map((post) => (
-            <>
-            <PostCard key={post._id?.toString()} post={post} />
-            </>
+            <PostCard key={post._id} post={post} />
           ))}
         </div>
       </section>
@@ -76,7 +74,7 @@ export default function HomePage() {
         <h2 className="text-3xl font-semibold mb-4">Latest Art Tutorials</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {tutorials.slice(0, 6).map((tutorial) => (
-            <TutorialCard key={tutorial._id?.toString()} tutorial={tutorial} />
+            <TutorialCard key={tutorial._id} tutorial={tutorial} />
           ))}
         </div>
       </section>

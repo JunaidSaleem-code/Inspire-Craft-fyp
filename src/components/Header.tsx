@@ -7,6 +7,7 @@ import {
   PlusCircle,
   User,
   LogOut,
+  Search,
 } from "lucide-react";
 import { useNotification } from "@/components/Notification";
 import { Button } from "@/components/ui/button";
@@ -92,14 +93,14 @@ export default function Header() {
         <div className="flex items-center space-x-3">
           {session ? (
             <>
+              <Link href="/explore" className="flex items-center hover:scale-105 transition">
+                <Search className="w-5 h-5" />
+              </Link>
               <Link href="/upload">
                 <Button className="bg-white text-pink-600 hover:bg-gray-100 p-2 rounded-full">
                   <PlusCircle className="w-6 h-6" />
                 </Button>
               </Link>
-              {/* <Link href="/explore" className="flex items-center hover:scale-105 transition">
-                <Search className="w-5 h-5" />
-              </Link> */}
              
 
               {/* <Link href="/notifications"   className="flex items-center  hover:scale-105 transition">

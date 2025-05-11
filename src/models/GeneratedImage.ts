@@ -35,6 +35,9 @@ const generatedImageSchema = new Schema<IGeneratedImage>(
   { timestamps: true }
 );
 
+generatedImageSchema.index({ prompt: "text" });
+
+
 const GeneratedImage =
   models?.GeneratedImage || model<IGeneratedImage>("GeneratedImage", generatedImageSchema);
 
