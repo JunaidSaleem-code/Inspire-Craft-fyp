@@ -19,7 +19,7 @@ export default function LoginForm() {
     e.preventDefault();
     try {
       setLoading(true);
-const callbackUrl = searchParams.get("callbackUrl") || "/";
+      const callbackUrl = searchParams.get("callbackUrl") || "/";
       const result = await signIn("credentials", {
         email,
         password,
@@ -33,7 +33,7 @@ const callbackUrl = searchParams.get("callbackUrl") || "/";
       if (result?.error) {
         showNotification(result.error, "error");
       } else {
-        router.push(callbackUrl);
+        router.push(result?.url || "/");
         showNotification("Login successful!", "success");
       }
     } catch {
