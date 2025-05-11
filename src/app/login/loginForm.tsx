@@ -2,7 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useState } from "react";
-import { useRouter} from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useNotification } from "../../components/Notification";
 import Link from "next/link";
 
@@ -13,12 +13,13 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const searchParams = useSearchParams();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       setLoading(true);
-      const callbackUrl = "/";
+const callbackUrl = searchParams.get("callbackUrl") || "/";
       const result = await signIn("credentials", {
         email,
         password,
