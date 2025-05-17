@@ -36,8 +36,6 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     const artwork = await Artwork.findById(params.id);
     if (!artwork) return NextResponse.json({ success: false, message: "Artwork not found" }, { status: 404 });
 
-    // Delete from ImageKit using fileId
-    // await imagekit.deleteFile(artwork.fileId);
 
     // Delete from MongoDB
     await Artwork.findByIdAndDelete(params.id);

@@ -1,40 +1,53 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { apiClient } from '@/lib/api-client';
-import ArtworkCard from '@/components/ArtworkCard';
-import PostCard from '@/components/PostCard';
-import TutorialCard from '@/components/TutorialCard';
-import AIImageCard from '@/components/AIImageCard';
-import { Button } from '@/components/ui/button';
-import { Artwork, GeneratedImage, Post, SearchResult, Tutorial } from '../types/page';
+import { useState } from "react";
+import { apiClient } from "@/lib/api-client";
+import ArtworkCard from "@/components/ArtworkCard";
+import PostCard from "@/components/PostCard";
+import TutorialCard from "@/components/TutorialCard";
+import AIImageCard from "@/components/AIImageCard";
+import { Button } from "@/components/ui/button";
+import {
+  Artwork,
+  GeneratedImage,
+  Post,
+  SearchResult,
+  Tutorial,
+} from "../types/page";
 
 const SearchComponent = () => {
-  const [query, setQuery] = useState('');
-  const [results, setResults] = useState<SearchResult>({ artworks: [], posts: [], tutorials: [], generatedImages: [] });
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<SearchResult>({
+    artworks: [],
+    posts: [],
+    tutorials: [],
+    generatedImages: [],
+  });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [filter, setFilter] = useState<'artwork' | 'post' | 'tutorial' | 'image' | 'all'>('all');
+  const [error, setError] = useState("");
+  const [filter, setFilter] = useState<
+    "artwork" | "post" | "tutorial" | "image" | "all"
+  >("all");
   const [page, setPage] = useState(1);
-  const [minPrice, setMinPrice] = useState('');
-  const [maxPrice, setMaxPrice] = useState('');
-const [artworks, setArtworks] = useState<Artwork[]>([]);
-const [posts, setPosts] = useState<Post[]>([]);
-const [tutorials, setTutorials] = useState<Tutorial[]>([]);
-const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [tutorials, setTutorials] = useState<Tutorial[]>([]);
+  const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const handleSearch = async () => {
     if (!query) {
-      setError('Please enter a search query');
+      setError("Please enter a search query");
       return;
     }
 
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       const searchResults = await apiClient.search(
         query,
-        filter === 'all' ? undefined : filter,
+        filter === "all" ? undefined : filter,
         page,
         10,
         minPrice ? parseFloat(minPrice) : undefined,
@@ -47,7 +60,7 @@ const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
       setGeneratedImages(searchResults.generatedImages || []);
     } catch (error) {
       console.error(error);
-      setError('An error occurred while fetching search results');
+      setError("An error occurred while fetching search results");
     } finally {
       setLoading(false);
     }
@@ -68,7 +81,16 @@ const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
         <div className="flex flex-wrap gap-4">
           <select
             value={filter}
-            onChange={(e) => setFilter(e.target.value as 'artwork' | 'post' | 'tutorial' | 'image' | 'all')}
+            onChange={(e) =>
+              setFilter(
+                e.target.value as
+                  | "artwork"
+                  | "post"
+                  | "tutorial"
+                  | "image"
+                  | "all"
+              )
+            }
             className="px-4 py-2 border rounded-md"
           >
             <option value="all">All</option>
@@ -78,7 +100,7 @@ const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
             <option value="image">Generated Images</option>
           </select>
 
-          {filter === 'artwork' && (
+          {filter === "artwork" && (
             <>
               <input
                 type="number"
@@ -100,8 +122,12 @@ const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
           )}
         </div>
 
-        <Button onClick={handleSearch} disabled={loading} className="w-full text-lg">
-          {loading ? 'Searching...' : 'Search'}
+        <Button
+          onClick={handleSearch}
+          disabled={loading}
+          className="w-full text-lg"
+        >
+          {loading ? "Searching..." : "Search"}
         </Button>
         {error && <p className="text-red-500 text-sm">{error}</p>}
       </div>
@@ -109,6 +135,17 @@ const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
       {/* Results */}
       {results && (
         <div className="space-y-12">
+          {/* Show "Nothing found" if all result types are empty */}
+          {!loading &&
+            query &&
+            artworks.length === 0 &&
+            posts.length === 0 &&
+            tutorials.length === 0 &&
+            generatedImages.length === 0 && (
+              <p className="text-center text-gray-500 text-lg mt-10">
+                Nothing found.
+              </p>
+            )}
           {artworks.length > 0 && (
             <section>
               <h2 className="text-2xl font-semibold mb-4">Artworks</h2>

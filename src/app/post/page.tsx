@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import PostCard from '@/components/PostCard';
 import  {apiClient} from "@/lib/api-client";
 import { Post } from '../types/page';
+import PostSkeleton from '@/components/PostSkeleton';
 
 const PostList = () => {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -31,7 +32,13 @@ const PostList = () => {
 
   // If the data is still loading
   if (loading) {
-    return <div>Loading posts...</div>;
+    return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 m-4">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <PostSkeleton key={i} />
+      ))}
+    </div>
+  );
   }
 
   // If there was an error while fetching
