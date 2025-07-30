@@ -3,15 +3,21 @@ import React, { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { EmojiPicker } from "./EmojiPicker";
 import { io, Socket } from "socket.io-client";
+import type { IUser } from "../models/User";
+
+interface IUserExtended extends IUser {
+  _id: string;
+  name?: string;
+}
 
 interface Conversation {
   _id: string;
   name?: string;
   avatar?: string;
-  participants: any[];
+  participants: IUserExtended[];
   lastMessage?: {
     content: string;
-    senderId: string;
+    senderId: string | IUserExtended;
     timestamp: string;
     type: string;
   };
@@ -22,7 +28,7 @@ interface Conversation {
 
 interface Message {
   _id: string;
-  senderId: string;
+  senderId: string | IUserExtended;
   content: string;
   type: string;
   timestamp: string;
@@ -42,12 +48,12 @@ export default function ChatListWithWindow() {
   const [groupName, setGroupName] = useState("");
   const [groupUsers, setGroupUsers] = useState<string[]>([]);
   const [searchUser, setSearchUser] = useState("");
-  const [userResults, setUserResults] = useState<any[]>([]);
+  const [userResults, setUserResults] = useState<IUserExtended[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showNewDM, setShowNewDM] = useState(false);
   const [dmSearch, setDmSearch] = useState("");
-  const [dmResults, setDmResults] = useState<any[]>([]);
+  const [dmResults, setDmResults] = useState<IUserExtended[]>([]);
   const [dmSelected, setDmSelected] = useState<string>("");
 
   useEffect(() => {
@@ -63,7 +69,15 @@ export default function ChatListWithWindow() {
     if (!session?.user?.id) return;
     fetch("/api/messages/conversations", { headers: { "x-user-id": session.user.id } })
       .then(res => res.json())
-      .then(setConversations);
+      .then(data => {
+        console.log("Fetched conversations:", data);
+        if (Array.isArray(data)) {
+          data.forEach(conv => {
+            console.log("Conversation participants:", conv.participants);
+          });
+        }
+        setConversations(data);
+      });
   }, [session?.user?.id]);
 
   useEffect(() => {
@@ -213,12 +227,12 @@ export default function ChatListWithWindow() {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {conversations.map(conv => (
-            <div key={conv._id} className={`p-4 cursor-pointer hover:bg-gray-100 ${selectedConversation?._id === conv._id ? "bg-gray-100" : ""}`} onClick={() => setSelectedConversation(conv)}>
-              <div className="font-semibold">{conv.name || conv.participants.find((u: any) => u._id !== session.user.id)?.username || "DM"}</div>
-              <div className="text-xs text-gray-500 truncate">{conv.lastMessage?.content || "No messages yet"}</div>
-            </div>
-          ))}
+  {conversations.map(conv => (
+    <div key={conv._id} className={`p-4 cursor-pointer hover:bg-gray-100 ${selectedConversation?._id === conv._id ? "bg-gray-100" : ""}`} onClick={() => setSelectedConversation(conv)}>
+      <div className="font-semibold">{conv.name || conv.participants.find((u: IUserExtended) => u._id !== session.user.id)?.username || "DM"}</div>
+      <div className="text-xs text-gray-500 truncate">{conv.lastMessage?.content || "No messages yet"}</div>
+    </div>
+  ))}
         </div>
       </div>
       {/* Chat Window */}
@@ -226,34 +240,46 @@ export default function ChatListWithWindow() {
         {selectedConversation ? (
           <>
             <div className="p-4 border-b font-semibold flex items-center gap-2">
-              {selectedConversation.name || selectedConversation.participants.find((u: any) => u._id !== session.user.id)?.username || "DM"}
+  {selectedConversation.name || selectedConversation.participants.find((u: IUserExtended) => u._id !== session.user.id)?.username || "DM"}
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              {uniqueMessages.map((msg, i) => {
-                const sender = selectedConversation?.participants.find((u: any) => u._id === msg.senderId);
-                const isMine = msg.senderId === session.user.id;
-                return (
-                  <div key={msg._id} className={`mb-2 flex ${isMine ? "justify-end" : "justify-start"} items-end`}>
-                    {!isMine && (
-                      <img
-                        src={sender?.avatar || "/default-avatar.png"}
-                        alt={sender?.username || sender?.name || sender?.email || "User"}
-                        className="w-8 h-8 rounded-full mr-2 border"
-                      />
-                    )}
-                    <div className={`rounded-lg px-3 py-2 max-w-[60%] ${isMine ? "bg-indigo-500 text-white" : "bg-white border"}`}>
-                      {msg.type === "text" ? msg.content : <span>[media]</span>}
-                    </div>
-                    {isMine && (
-                      <img
-                        src={sender?.avatar || "/default-avatar.png"}
-                        alt={sender?.username || sender?.name || sender?.email || "User"}
-                        className="w-8 h-8 rounded-full ml-2 border"
-                      />
-                    )}
-                  </div>
-                );
-              })}
+  {uniqueMessages.length > 0 ? uniqueMessages.map((msg, i) => {
+  // Extract senderId string from msg.senderId object or string
+  const senderIdStr = typeof msg.senderId === "string" ? msg.senderId : (msg.senderId?._id ?? "");
+  let sender = selectedConversation?.participants.find((u: IUserExtended) => String(u._id) === String(senderIdStr));
+  if (!sender) {
+    // Fallback: try to find sender in userResults
+    sender = userResults.find((u: IUserExtended) => String(u._id) === String(senderIdStr));
+  }
+  console.log("Message sender:", sender, "Message:", msg);
+  const isMine = String(senderIdStr) === String(session?.user?.id);
+  const senderUsername = sender && typeof sender.username === "string" && !isMine ? sender.username : "";
+  const senderAvatar = sender && typeof sender.avatar === "string" && sender.avatar.length > 0 ? sender.avatar : "/default-avatar.png";
+  return (
+    <div key={msg._id} className={`mb-2 flex ${isMine ? "justify-end" : "justify-start"} items-end`}>
+      {!isMine && (
+        <img
+          src={senderAvatar}
+          alt={senderUsername}
+          className="w-8 h-8 rounded-full mr-2 border"
+        />
+      )}
+      <div className={`flex flex-col rounded-lg px-3 py-2 max-w-[60%] ${isMine ? "bg-indigo-500 text-white" : "bg-white border"}`}>
+        {senderUsername && <span className="text-xs text-gray-500 mb-1">{senderUsername}</span>}
+        {msg.type === "text" ? msg.content : <span>[media]</span>}
+      </div>
+      {isMine && (
+        <img
+          src={senderAvatar}
+          alt={senderUsername}
+          className="w-8 h-8 rounded-full ml-2 border"
+        />
+      )}
+    </div>
+  );
+}) : (
+  <div className="text-center text-gray-500">No messages to display</div>
+)}
               <div ref={messagesEndRef} />
             </div>
             <div className="p-4 border-t flex items-center gap-2">
