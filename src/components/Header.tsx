@@ -8,6 +8,7 @@ import {
   User,
   LogOut,
   Search,
+  MessageCircle,
 } from "lucide-react";
 import { useNotification } from "@/components/Notification";
 import { Button } from "@/components/ui/button";
@@ -64,14 +65,14 @@ export default function Header() {
           {/* <Link href="/ai-images/public" className="flex items-center gap-1 hover:scale-105 transition">
             <BrainCircuit className="w-5 h-5" />
             <span className="hidden sm:inline">AI-Images</span>
-          </Link>
+          </Link> */}
 
-          <Link href="/tutorial" className="flex items-center gap-1 hover:scale-105 transition">
+          {/* <Link href="/tutorial" className="flex items-center gap-1 hover:scale-105 transition">
             <BookOpen className="w-5 h-5" />
             <span className="hidden sm:inline">Tutorials</span>
-          </Link>
+          </Link> */}
 
-          <Link href="/artwork" className="flex items-center gap-1 hover:scale-105 transition">
+          {/* <Link href="/artwork" className="flex items-center gap-1 hover:scale-105 transition">
             <Brush className="w-5 h-5" />
             <span className="hidden sm:inline">Artworks</span>
           </Link> */}
@@ -95,6 +96,11 @@ export default function Header() {
             <>
               <Link href="/explore" className="flex items-center hover:scale-105 transition">
                 <Search className="w-5 h-5" />
+              </Link>
+              <Link href="/messages">
+                <Button className="bg-white text-indigo-600 hover:bg-gray-100 p-2 rounded-full">
+                  <MessageCircle className="w-6 h-6" />
+                </Button>
               </Link>
               <Link href="/upload">
                 <Button className="bg-white text-pink-600 hover:bg-gray-100 p-2 rounded-full">
