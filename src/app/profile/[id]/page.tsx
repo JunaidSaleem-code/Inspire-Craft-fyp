@@ -18,12 +18,12 @@ type TabType = "artworks" | "posts" | "tutorials" | "aiImages";
 
 const TABS: TabType[] = ["artworks", "posts", "tutorials", "aiImages"];
 
-export default function ProfilePage({ params }: { params: { userId?: string } }) {
+export default function ProfilePage({ params }: { params: { id?: string } }) {
   const { data: session } = useSession();
   const { showNotification } = useNotification();
   const router = useRouter();
 
-  const profileUserId = params?.userId || session?.user?.id;
+  const profileUserId = params?.id || session?.user?.id;
   const isOwnProfile = session?.user?.id === profileUserId;
 
   const [userProfile, setUserProfile] = useState<User>();
@@ -70,6 +70,7 @@ export default function ProfilePage({ params }: { params: { userId?: string } })
 
     fetchProfile();
   }, [profileUserId, session?.user?.id, isOwnProfile, showNotification]);
+
 
   const handleTabClick = async (tab: TabType) => {
     setActiveTab(tab);

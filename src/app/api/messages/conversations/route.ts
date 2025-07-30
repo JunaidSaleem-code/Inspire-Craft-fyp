@@ -5,7 +5,7 @@ import Message from '@/models/Message';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
       })
     );
     return NextResponse.json(conversationsWithLastMessage);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     });
     const populatedConversation = await conversation.populate('participants', 'username avatar');
     return NextResponse.json(populatedConversation);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}

@@ -16,8 +16,8 @@ export async function GET(
       return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
     }
     const [tutorial, likes] = await Promise.all([
-      Tutorial.findById(id).populate('author', 'username email').lean(),
-      Like.find({ tutorial: id }).populate('user', 'name email image').lean(),
+      Tutorial.findById(id).populate('author', 'username email avatar').lean(),
+      Like.find({ tutorial: id }).populate('user', 'name email avatar').lean(),
     ]);
    
     if (!tutorial) {

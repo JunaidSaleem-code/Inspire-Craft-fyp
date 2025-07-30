@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       .sort({ timestamp: 1 })
       .populate('senderId', 'username avatar');
     return NextResponse.json(messages);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -61,8 +61,8 @@ export async function POST(req: NextRequest) {
     if (!conversation) {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
     }
-    let mediaUrl = '';
-    let mediaType = '';
+    const mediaUrl = '';
+    const mediaType = '';
     // Handle media upload (implement if you have a media service)
     // if (media) { ... }
     // Create message
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
     });
     const populatedMessage = await message.populate('senderId', 'username avatar');
     return NextResponse.json(populatedMessage);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}

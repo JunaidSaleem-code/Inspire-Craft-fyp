@@ -3,21 +3,17 @@ import React, { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { EmojiPicker } from "./EmojiPicker";
 import { io, Socket } from "socket.io-client";
-import type { IUser } from "../models/User";
-
-interface IUserExtended extends IUser {
-  _id: string;
-  name?: string;
-}
+import type { User } from "../types/index";
+import Image from "next/image";
 
 interface Conversation {
   _id: string;
   name?: string;
   avatar?: string;
-  participants: IUserExtended[];
+  participants: User[];
   lastMessage?: {
     content: string;
-    senderId: string | IUserExtended;
+    senderId: string | User;
     timestamp: string;
     type: string;
   };
@@ -28,7 +24,7 @@ interface Conversation {
 
 interface Message {
   _id: string;
-  senderId: string | IUserExtended;
+  senderId: string | User;
   content: string;
   type: string;
   timestamp: string;
@@ -48,12 +44,12 @@ export default function ChatListWithWindow() {
   const [groupName, setGroupName] = useState("");
   const [groupUsers, setGroupUsers] = useState<string[]>([]);
   const [searchUser, setSearchUser] = useState("");
-  const [userResults, setUserResults] = useState<IUserExtended[]>([]);
+  const [userResults, setUserResults] = useState<User[]>([]);
   const [socket, setSocket] = useState<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showNewDM, setShowNewDM] = useState(false);
   const [dmSearch, setDmSearch] = useState("");
-  const [dmResults, setDmResults] = useState<IUserExtended[]>([]);
+  const [dmResults, setDmResults] = useState<User[]>([]);
   const [dmSelected, setDmSelected] = useState<string>("");
 
   useEffect(() => {
@@ -63,7 +59,7 @@ export default function ChatListWithWindow() {
       setSocket(s);
       return () => { s.disconnect(); };
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, socket]);
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -155,11 +151,11 @@ export default function ChatListWithWindow() {
   };
 
   // Filter unique users by _id for group modal
-  const uniqueUserResults = userResults.filter(
+  const uniqueUserResults: User[] = userResults.filter(
     (u, i, arr) => arr.findIndex(x => x._id === u._id) === i
   );
   // Filter unique users by _id for DM modal
-  const uniqueDmResults = dmResults.filter(
+  const uniqueDmResults: User[] = dmResults.filter(
     (u, i, arr) => arr.findIndex(x => x._id === u._id) === i
   );
 
@@ -177,8 +173,8 @@ export default function ChatListWithWindow() {
       conv =>
         conv.type === "direct" &&
         conv.participants.length === 2 &&
-        conv.participants.some((u: any) => u._id === dmSelected) &&
-        conv.participants.some((u: any) => u._id === session?.user?.id)
+        conv.participants.some((u: User) => u._id === dmSelected) &&
+        conv.participants.some((u: User) => u._id === session?.user?.id)
     );
     if (existing) {
       setSelectedConversation(existing);
@@ -229,7 +225,7 @@ export default function ChatListWithWindow() {
         <div className="flex-1 overflow-y-auto">
   {conversations.map(conv => (
     <div key={conv._id} className={`p-4 cursor-pointer hover:bg-gray-100 ${selectedConversation?._id === conv._id ? "bg-gray-100" : ""}`} onClick={() => setSelectedConversation(conv)}>
-      <div className="font-semibold">{conv.name || conv.participants.find((u: IUserExtended) => u._id !== session.user.id)?.username || "DM"}</div>
+      <div className="font-semibold">{conv.name || conv.participants.find((u: User) => u._id !== session.user.id)?.username || "DM"}</div>
       <div className="text-xs text-gray-500 truncate">{conv.lastMessage?.content || "No messages yet"}</div>
     </div>
   ))}
@@ -240,16 +236,16 @@ export default function ChatListWithWindow() {
         {selectedConversation ? (
           <>
             <div className="p-4 border-b font-semibold flex items-center gap-2">
-  {selectedConversation.name || selectedConversation.participants.find((u: IUserExtended) => u._id !== session.user.id)?.username || "DM"}
+              {selectedConversation.name || selectedConversation.participants.find((u: User) => u._id !== session.user.id)?.username || "DM"}
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-  {uniqueMessages.length > 0 ? uniqueMessages.map((msg, i) => {
+  {uniqueMessages.length > 0 ? uniqueMessages.map((msg) => {
   // Extract senderId string from msg.senderId object or string
   const senderIdStr = typeof msg.senderId === "string" ? msg.senderId : (msg.senderId?._id ?? "");
-  let sender = selectedConversation?.participants.find((u: IUserExtended) => String(u._id) === String(senderIdStr));
+  let sender = selectedConversation?.participants.find((u: User) => String(u._id) === String(senderIdStr));
   if (!sender) {
     // Fallback: try to find sender in userResults
-    sender = userResults.find((u: IUserExtended) => String(u._id) === String(senderIdStr));
+    sender = userResults.find((u: User) => String(u._id) === String(senderIdStr));
   }
   console.log("Message sender:", sender, "Message:", msg);
   const isMine = String(senderIdStr) === String(session?.user?.id);
@@ -258,7 +254,7 @@ export default function ChatListWithWindow() {
   return (
     <div key={msg._id} className={`mb-2 flex ${isMine ? "justify-end" : "justify-start"} items-end`}>
       {!isMine && (
-        <img
+        <Image
           src={senderAvatar}
           alt={senderUsername}
           className="w-8 h-8 rounded-full mr-2 border"
@@ -269,7 +265,7 @@ export default function ChatListWithWindow() {
         {msg.type === "text" ? msg.content : <span>[media]</span>}
       </div>
       {isMine && (
-        <img
+        <Image
           src={senderAvatar}
           alt={senderUsername}
           className="w-8 h-8 rounded-full ml-2 border"
@@ -315,13 +311,13 @@ export default function ChatListWithWindow() {
                 const user = uniqueUserResults.find(u => u._id === uid);
                 return (
                   <span key={uid} className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full text-xs">
-                    {user?.username || user?.name || user?.email || uid}
+                    {user?.username || user?.username || user?.email || uid}
                   </span>
                 );
               })}
             </div>
             <div className="max-h-32 overflow-y-auto mb-2">
-              {uniqueUserResults.map((u: any) => (
+              {uniqueUserResults.map((u: User) => (
                 <label key={u._id} className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer rounded">
                   <input
                     type="checkbox"
@@ -334,7 +330,7 @@ export default function ChatListWithWindow() {
                       }
                     }}
                   />
-                  <span>{u.username || u.name || u.email || u._id}</span>
+                  <span>{u.username || u.username || u.email || u._id}</span>
                 </label>
               ))}
             </div>
@@ -352,7 +348,7 @@ export default function ChatListWithWindow() {
             <div className="font-bold mb-2">Start New Message</div>
             <input className="border rounded px-3 py-2 w-full mb-2" placeholder="Search users..." value={dmSearch} onChange={e => handleDmUserSearch(e.target.value)} />
             <div className="max-h-40 overflow-y-auto mb-4">
-              {uniqueDmResults.map((u: any) => (
+              {uniqueDmResults.map((u: User) => (
                 <label key={u._id} className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer rounded">
                   <input
                     type="radio"
@@ -360,7 +356,7 @@ export default function ChatListWithWindow() {
                     checked={dmSelected === u._id}
                     onChange={() => setDmSelected(u._id)}
                   />
-                  <span>{u.username || u.name || u.email || u._id}</span>
+                  <span>{u.username || u.username || u.email || u._id}</span>
                 </label>
               ))}
             </div>

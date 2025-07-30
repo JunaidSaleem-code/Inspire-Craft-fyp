@@ -35,11 +35,11 @@ export default function MobileNav() {
         <Link key={href} href={href} className="flex flex-col items-center text-xs text-gray-500 hover:text-indigo-600 transition">
           <Icon
             className={clsx("w-6 h-6 mb-1", {
-              "text-indigo-600": pathname.startsWith(href),
-              "text-gray-400": !pathname.startsWith(href),
+              "text-indigo-600": pathname?.startsWith(href),
+              "text-gray-400": !pathname?.startsWith(href),
             })}
           />
-          <span className={clsx("text-[10px]", { "font-semibold text-indigo-600": pathname.startsWith(href) })}>
+          <span className={clsx("text-[10px]", { "font-semibold text-indigo-600": pathname?.startsWith(href) })}>
             {label}
           </span>
         </Link>

@@ -21,9 +21,9 @@ type EditableContent = {
 export default function EditPage() {
   const params = useParams(); // ✅ hook used at top level
   const searchParams = useSearchParams(); // for fileType, category, etc. from query
-  const id = params.id?.toString() || "";
-  const category = searchParams.get("category") || "";
-  const fileType = searchParams.get("fileType") || "";
+  const id = params?.id?.toString() || "";
+  const category = searchParams?.get("category") || "";
+  const fileType = searchParams?.get("fileType") || "";
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState<number | "">("");

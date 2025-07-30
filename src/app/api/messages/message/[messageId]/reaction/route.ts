@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import Message from '@/models/Message';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { Types } from 'mongoose';
 
 export async function POST(
   req: NextRequest,
@@ -26,12 +27,12 @@ export async function POST(
     }
     // Check if user has already reacted with this emoji
     const existingReaction = message.reactions.find(
-      (r) => r.user.toString() === session.user.id && r.emoji === emoji
+      (r: { user: Types.ObjectId; emoji: string }) => r.user.toString() === session.user.id && r.emoji === emoji
     );
     if (existingReaction) {
       // Remove the reaction
       message.reactions = message.reactions.filter(
-        (r) => !(r.user.toString() === session.user.id && r.emoji === emoji)
+        (r: { user: Types.ObjectId; emoji: string }) => !(r.user.toString() === session.user.id && r.emoji === emoji)
       );
     } else {
       // Add the reaction
@@ -43,7 +44,7 @@ export async function POST(
     await message.save();
     const populatedMessage = await message.populate('senderId', 'username avatar');
     return NextResponse.json(populatedMessage);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-} 
+}

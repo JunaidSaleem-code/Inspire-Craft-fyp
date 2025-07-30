@@ -1,21 +1,22 @@
 'use client';
 
-import { useEffect, useState,useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import  {apiClient} from "@/lib/api-client";
 import { useSession } from 'next-auth/react';
 import { formatDistanceToNow } from 'date-fns';
 import { Heart, MessageCircle, Pencil, Trash } from 'lucide-react';
+import Image from 'next/image';
+
+import { apiClient } from '@/lib/api-client';
+import { useNotification } from '@/components/Notification';
 import CommentSection from '@/components/CommentSection-DESKTOP-Q7VSBOC';
 import LikesDropdown from '@/components/LikeDropdown';
-import { useNotification } from '@/components/Notification';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Like, Tutorial, User } from '@/app/types/page';
 
-
-
 export default function TutorialPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const  id  = params?.id;
   const router = useRouter();
   const { data: session } = useSession();
   const { showNotification } = useNotification();
@@ -27,12 +28,12 @@ export default function TutorialPage() {
   const [showComments, setShowComments] = useState(false);
   const [showLikesDropdown, setShowLikesDropdown] = useState(false);
 
-  
   const fetchTutorial = useCallback(async () => {
     try {
       const response = await apiClient.getTutorialById(id as string);
       setTutorial(response);
-      setLiked(response.likes!.some((like: Like) => like?.user?._id === session?.user?.id));
+      console.log('response', response);
+      setLiked(response.likes?.some((like: Like) => like?.user?._id === session?.user?.id) || false);
     } catch {
       showNotification('Failed to fetch tutorial', 'error');
     } finally {
@@ -74,10 +75,9 @@ export default function TutorialPage() {
   };
 
   const handleUpdateTutorial = () => {
-    if (tutorial)
-    //   console.log(tutorial);
-    // console.log('id', id);
+    if (tutorial) {
       router.push(`/edit/tutorial/${tutorial._id}?category=tutorial&fileType=video`);
+    }
   };
 
   if (loading) {
@@ -92,9 +92,12 @@ export default function TutorialPage() {
     );
   }
 
-  if (!tutorial) return <div className="text-center mt-10 text-red-500">Tutorial not found</div>;
+  if (!tutorial || typeof tutorial !== 'object') {
+    return <div className="text-center mt-10 text-red-500">Tutorial not found</div>;
+  }
 
-  const isOwner = session?.user?.id === tutorial.author?._id;
+  const author = tutorial.author as User;
+  const isOwner = session?.user?.id === author?._id;
 
   return (
     <div className="bg-white shadow-xl rounded-xl overflow-hidden max-w-2xl mx-auto mt-4 mb-12 border">
@@ -104,19 +107,35 @@ export default function TutorialPage() {
           <source src={tutorial.mediaUrl} type="video/mp4" />
         </video>
       </div>
+
       {/* Info Section */}
       <div className="px-6 py-4">
-        {/* Header */}
+        {/* Header with avatar, name, date */}
         <div className="flex justify-between items-center mb-4">
-          <div className="text-sm text-gray-600">
-            {typeof tutorial.author === 'object' ? (
-              <span className="font-semibold">
-                {(tutorial.author as User)?.username || (tutorial.author as User)?.email}
-              </span>
-            ) : (
-              <span className="text-gray-400">Unknown Author</span>
-            )}
-            <span className="ml-2 text-gray-400">• {formatDistanceToNow(new Date(tutorial.createdAt))} ago</span>
+          <div className="flex items-center gap-3"
+              onClick={() => router.push(`/profile/${author?._id}`)}>
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-300">
+              <Image
+                src={author?.avatar || '/default-avatar.png'}
+                alt={author?.username || 'User'}
+                width={40}
+                height={40}
+                className="rounded-full object-cover"
+              />
+            </div>
+            <div
+              className="cursor-pointer"
+            >
+              <p className="font-semibold text-base flex items-center">
+                {author?.username || 'Anonymous'}
+                {author?.isVerified && <span className="ml-1 text-blue-500 text-sm">✔️</span>}
+              </p>
+              {tutorial.createdAt && (
+                <p className="text-xs text-gray-500">
+                  {formatDistanceToNow(new Date(String(tutorial.createdAt)))} ago
+                </p>
+              )}
+            </div>
           </div>
 
           {isOwner && (
@@ -154,7 +173,7 @@ export default function TutorialPage() {
 
             {showLikesDropdown && (
               <LikesDropdown
-                likes={tutorial.likes ||  []}
+                likes={tutorial.likes || []}
                 showLikesDropdown={showLikesDropdown}
                 setShowLikesDropdown={setShowLikesDropdown}
               />

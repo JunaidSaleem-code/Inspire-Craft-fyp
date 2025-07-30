@@ -1,31 +1,32 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import  {apiClient} from "@/lib/api-client";
 import { Loader2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useNotification } from "@/components/Notification";
-import { GeneratedImage } from "@/app/types/page";
+import { GeneratedImage, User } from "@/app/types/page";
 import Image from "next/image";
 
 export default function AIImageDetailsPage() {
   const [image, setImage] = useState< GeneratedImage>();
+  const [author, setAuthor] = useState<User>();
   const [loading, setLoading] = useState(true);
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>()!;
+  const router = useRouter();
   const { data: session } = useSession();
   const { showNotification } = useNotification();
 
   useEffect(() => {
+    if (!id) return;
     const fetchImage = async () => {
       try {
         const data = await apiClient.getGeneratedImageById(id);
-        
-          console.log(data);
           setImage(data);
-        
+          setAuthor(data.user);
       } catch {
         showNotification("Failed to load image", "error");
       } finally {
@@ -75,10 +76,12 @@ export default function AIImageDetailsPage() {
           {/* User */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white text-sm font-bold">
+              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white text-sm font-bold"
+              >
                 <Image src={user?.avatar || ""} alt={user?.username || ""} width={40} height={40} className="w-10 h-10 rounded-full" />
               </div>
-              <div>
+              <div
+                onClick={() => router.push(`/profile/${author?._id}`)}>
                 <p className="font-semibold text-base flex items-center">
                   {user?.username || "Anonymous"}
                   {user?.isVerified && <span className="ml-1 text-blue-500 text-sm">✔️</span>}

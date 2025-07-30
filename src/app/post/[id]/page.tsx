@@ -12,11 +12,12 @@ import LikesDropdown from '@/components/LikeDropdown';
 import { useNotification } from '@/components/Notification';
 import { Like, Post } from '@/app/types/page';
 import Image from 'next/image';
-
+import Link from 'next/link';
 
 export default function PostDetail() {
   const router = useRouter();
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id;
   const { data: session } = useSession();
   const [post, setPost] = useState<Post >();
   const [showComments, setShowComments] = useState(false);
@@ -140,12 +141,25 @@ export default function PostDetail() {
         )}
       </div>
 
-      {/* Post Info Section */}
-      <div className="px-6 py-4">
-        <div className="mb-4">
-          <h2 className="text-2xl font-semibold">{post.title}</h2>
-          <p className="text-gray-500 text-sm">{post.description}</p>
-        </div>
+        {/* Post Info Section */}
+        <div className="px-6 py-4">
+          <div className="mb-4">
+            <h2 className="text-2xl font-semibold">{post.title}</h2>
+            <p className="text-gray-500 text-sm">{post.description}</p>
+          </div>
+
+          <div className="flex items-center gap-4 mb-4">
+            <Link href={`/profile/${post.user._id}`} className="flex items-center gap-4">
+              <Image
+                src={post.user.avatar || "/default-avatar.png"}
+                alt={post.user.username || "User Avatar"}
+                width={40}
+                height={40}
+                className="rounded-full"
+              />
+              <span className="text-lg font-semibold">{post.user.username || "Anonymous"}</span>
+            </Link>
+          </div>
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between mt-4 gap-6">

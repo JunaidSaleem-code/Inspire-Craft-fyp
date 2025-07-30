@@ -19,7 +19,7 @@ export default function LoginForm() {
     e.preventDefault();
     try {
       setLoading(true);
-      const callbackUrl = searchParams.get("callbackUrl") || "/";
+      const callbackUrl = searchParams?.get("callbackUrl") || "/";
       const result = await signIn("credentials", {
         email,
         password,

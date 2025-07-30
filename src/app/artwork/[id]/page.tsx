@@ -18,7 +18,8 @@ import Image from 'next/image';
 
 export default function ArtworkDetail() {
   const router = useRouter();
-  const { id } = useParams();
+  const params = useParams();
+  const id = params?.id;
   const { data: session } = useSession(); 
   const [artwork, setArtwork] = useState<Artwork>();
   const [showComments, setShowComments] = useState(false);
@@ -213,12 +214,16 @@ export default function ArtworkDetail() {
           </button>
         </div>
 
-        <div className="text-sm text-gray-500">
-          Posted by:{' '}
-          <Link href={`/profile/${artwork.artist._id}`} className="underline hover:text-blue-600">
-            {artwork.artist.email}
-          </Link>
-        </div>
+        <Link href={`/profile/${artwork.artist._id}`} className="flex items-center gap-4">
+          <Image
+            src={artwork.artist.avatar || "/default-avatar.png"}
+            alt={artwork.artist.username || "User Avatar"}
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
+          <span className="text-lg font-semibold">{artwork.artist.username || "Anonymous"}</span>
+        </Link>
 
         <div className="font-semibold text-lg">
           {artwork.price} {artwork.currency}
