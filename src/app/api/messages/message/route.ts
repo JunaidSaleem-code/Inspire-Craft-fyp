@@ -49,7 +49,18 @@ export async function POST(req: NextRequest) {
     let conversationId: string;
     let content: string;
     let type: string;
-    let sharedContent: any;
+    let sharedContent: {
+      type: string;
+      contentId: string;
+      title: string;
+      description?: string;
+      mediaUrl: string;
+      author: {
+        id: string;
+        username: string;
+        avatar?: string;
+      };
+    } | null = null;
     let media: File | null;
     
     if (contentType?.includes('application/json')) {

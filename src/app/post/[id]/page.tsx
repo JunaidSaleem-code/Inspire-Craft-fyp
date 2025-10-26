@@ -1,7 +1,7 @@
 'use client';
 
 import { Heart, MessageCircle, Trash, Pencil } from 'lucide-react';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import DetailSkeleton from '@/components/skeletons/DetailSkeleton';
 import { useSession } from 'next-auth/react';
@@ -9,7 +9,7 @@ import CommentSection from '@/components/CommentSection-DESKTOP-Q7VSBOC';
 import { formatDistanceToNow } from 'date-fns';
 import LikesDropdown from '@/components/LikeDropdown';
 import { useNotification } from '@/components/Notification';
-import { Like, Post } from '@/app/types/page';
+import { Like } from '@/app/types/page';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePost } from '@/hooks/useData';
@@ -27,7 +27,7 @@ export default function PostDetail() {
   const [isLiking, setIsLiking] = useState(false);
   const [showLikesDropdown, setShowLikesDropdown] = useState(false);
   const {showNotification} = useNotification();
-  const likes = post?.likes || [];
+  const likes = useMemo(() => post?.likes || [], [post?.likes]);
   
   useEffect(() => {
     if (post && session?.user?.id) {

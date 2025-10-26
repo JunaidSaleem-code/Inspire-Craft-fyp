@@ -12,7 +12,7 @@ import { useNotification } from '@/components/Notification';
 import CommentSection from '@/components/CommentSection-DESKTOP-Q7VSBOC';
 import LikesDropdown from '@/components/LikeDropdown';
 import DetailSkeleton from '@/components/skeletons/DetailSkeleton';
-import { Like, Tutorial, User } from '@/app/types/page';
+import { Like, User } from '@/app/types/page';
 import { useTutorial } from '@/hooks/useData';
 import ShareButton from '@/components/ShareButton';
 
@@ -78,7 +78,6 @@ export default function TutorialPage() {
 
   const author = tutorial.author as User;
   const isOwner = session?.user?.id === author?._id;
-  const likes = tutorial.likes || [];
 
   return (
     <div className="min-h-screen bg-black pt-24 pb-24">

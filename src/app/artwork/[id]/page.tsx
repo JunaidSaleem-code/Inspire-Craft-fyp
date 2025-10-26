@@ -1,7 +1,7 @@
 'use client';
 
 import { Heart, MessageCircle, Trash, Pencil } from 'lucide-react';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import  {apiClient} from "@/lib/api-client";
 import DetailSkeleton from '@/components/skeletons/DetailSkeleton';
@@ -12,7 +12,7 @@ import LikesDropdown from '@/components/LikeDropdown';
 import { useNotification } from '@/components/Notification';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Artwork, Like } from '@/app/types/page';
+import { Like } from '@/app/types/page';
 import Image from 'next/image';
 import { useArtwork } from '@/hooks/useData';
 import ShareButton from '@/components/ShareButton';
@@ -29,7 +29,7 @@ export default function ArtworkDetail() {
   const [isLiking, setIsLiking] = useState(false);
   const [showLikesDropdown, setShowLikesDropdown] = useState(false);
   const { showNotification } = useNotification();
-  const likes = artwork?.likes || [];
+  const likes = useMemo(() => artwork?.likes || [], [artwork?.likes]);
 
   useEffect(() => {
     if (artwork && session?.user?.id) {
@@ -220,7 +220,7 @@ export default function ArtworkDetail() {
 
 
         {showComments && (
-          <Suspense fallback={<Skeleton className="h-20 w-full" />}>
+          <Suspense fallback={<div className="h-20 w-full animate-pulse bg-gray-800 rounded" />}>
           <div className="mt-6">
           <CommentSection contentId={artwork._id!.toString()} category="artwork" />
         </div>

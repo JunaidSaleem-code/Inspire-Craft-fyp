@@ -29,7 +29,7 @@ export default function ShareButton({
   const { data: session } = useSession();
   const { showNotification } = useNotification();
   const [showModal, setShowModal] = useState(false);
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<Array<{ _id: string; name?: string; participants: Array<{ _id?: string; username?: string }> }>>([]);
   const [selected, setSelected] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -122,7 +122,7 @@ export default function ShareButton({
                     />
                     <div className="flex-1">
                       <p className="text-white font-medium">
-                        {conv.name || conv.participants.find((u: any) => u._id !== session?.user?.id)?.username || 'DM'}
+                        {conv.name || conv.participants.find((u) => u._id !== session?.user?.id)?.username || 'DM'}
                       </p>
                     </div>
                   </label>

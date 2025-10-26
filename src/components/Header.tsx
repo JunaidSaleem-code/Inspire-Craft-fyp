@@ -18,12 +18,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
 
 export default function Header() {
   const { data: session } = useSession();
   const { showNotification } = useNotification();
-  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+
 
   const handleSignOut = async () => {
     try {

@@ -2,7 +2,7 @@
 'use client';
 
 import { Tutorial } from '@/app/types/page';
-import { Card, CardContent } from '@/components/ui/card';
+import { CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Play } from 'lucide-react';

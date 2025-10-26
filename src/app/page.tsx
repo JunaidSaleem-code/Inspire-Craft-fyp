@@ -15,8 +15,6 @@ export default function HomePage() {
   const { data: posts, isLoading: loadingPosts } = usePosts();
   const { data: tutorials, isLoading: loadingTutorials } = useTutorials();
 
-  const loading = loadingArtworks || loadingPosts || loadingTutorials;
-
   return (
     <div className="min-h-screen bg-black pt-24">
       {/* Hero Section */}

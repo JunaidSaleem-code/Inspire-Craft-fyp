@@ -6,7 +6,7 @@ import { useAIImages } from "@/hooks/useData";
 
 
 export default function MyAiImagesPage() {
-  const { data: images, isLoading: loading, error } = useAIImages();
+  const { data: images, isLoading: loading } = useAIImages();
 
   if (loading) {
     return (
