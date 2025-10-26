@@ -1,81 +1,15 @@
-// 'use client';
-
-// import { Card, CardContent } from '@/components/ui/card';
-// import { IKImage, IKVideo } from 'imagekitio-next';
-// import { IArtwork } from '@/models/Artwork';
-// import { useRouter } from 'next/navigation';
-
-
-// const _DIMENSIONS = {
-//   square: { width: 1080, height: 1080 },
-//   portrait: { width: 1080, height: 1350 },
-//   landscape: { width: 1080, height: 566 },
-// } as const;
-
-// interface ArtworkCardProps {
-//   artwork: IArtwork;
-// }
-
-// export default function ArtworkCard({ artwork }: ArtworkCardProps) {
-//   const router = useRouter();
-
-//   const goToDetailPage = () => {
-//     router.push(`/artwork/${artwork._id}`);
-//   };
-
-//   return (
-//     <div
-//       onClick={goToDetailPage}
-//       className="bg-white shadow-md rounded-xl overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105 hover:shadow-xl"
-//     >
-//       <Card className="border-none rounded-none">
-//         <CardContent className="p-0">
-//           <div className="relative aspect-[4/5] w-full max-h-80 ">
-//             {artwork.mediaType === 'image' ? (
-//               <IKImage
-//                 path={artwork.mediaUrl.startsWith('http') ? undefined : artwork.mediaUrl}
-//                 src={artwork.mediaUrl.startsWith('http') ? artwork.mediaUrl : undefined}
-//                 alt={artwork.title}
-//                 className="w-full h-full object-cover rounded-2xl"
-//                 width={_DIMENSIONS.portrait.width}
-//                 height={_DIMENSIONS.portrait.height}
-//                 loading="lazy"
-//               />
-//             ) : (
-//               <IKVideo
-//                 src={artwork.mediaUrl}
-//                 controls
-//                 className="w-full h-full object-cover"
-//                 width={_DIMENSIONS.portrait.width}
-//                 height={_DIMENSIONS.portrait.height}
-//               />
-//             )}
-//           </div>
-
-//           <div className="p-4 space-y-1">
-//             <h3 className="text-lg font-bold text-gray-900 truncate">{artwork.title}</h3>
-//             <p className="text-sm text-gray-600 line-clamp-2">{artwork.description}</p>
-//             <p className="text-base text-gray-800 font-medium mt-1">
-//               {artwork.price} {artwork.currency}
-//             </p>
-//             {artwork.isSold && <p className="text-red-500 text-xs font-semibold">Sold</p>}
-//           </div>
-//         </CardContent>
-//       </Card>
-//     </div>
-//   );
-// }
-
 'use client';
 
 import { IKImage, IKVideo } from 'imagekitio-next';
 import { useRouter } from 'next/navigation';
 import { Artwork } from '@/app/types/page';
+import { ShoppingBag, Eye } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const _DIMENSIONS = {
-  square: { width: 1080, height: 1080 },
-  portrait: { width: 1080, height: 1350 },
-  landscape: { width: 1080, height: 566 },
+  square: { width: 600, height: 600 }, // Optimized from 1080x1080 for better performance
+  portrait: { width: 600, height: 800 },
+  landscape: { width: 600, height: 340 },
 } as const;
 
 interface ArtworkCardProps {
@@ -91,19 +25,21 @@ export default function ArtworkCard({ artwork }: ArtworkCardProps) {
   };
 
   return (
-    <div
+    <motion.div
       onClick={goToDetailPage}
-      className="bg-white shadow-lg rounded-lg overflow-hidden flex flex-col sm:flex-row cursor-pointer hover:shadow-xl transition"
+      className="group relative card-artist hover-lift transition-all duration-300 cursor-pointer overflow-hidden"
+      whileHover={{ scale: 1.02 }}
+      transition={{ duration: 0.3 }}
     >
       {/* Media */}
-      <div className="sm:w-1/2 w-full">
+      <div className="relative aspect-[4/3] overflow-hidden">
         {artwork.mediaType === 'image' ? (
           <IKImage
             urlEndpoint={IMAGEKIT_BASE_URL}
             path={artwork.mediaUrl.startsWith('http') ? undefined : artwork.mediaUrl}
             src={artwork.mediaUrl.startsWith('http') ? artwork.mediaUrl : undefined}
             alt={artwork.title}
-            className="w-full h-full object-cover max-h-80"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             width={_DIMENSIONS.square.width}
             height={_DIMENSIONS.square.height}
             loading="lazy"
@@ -113,28 +49,55 @@ export default function ArtworkCard({ artwork }: ArtworkCardProps) {
             urlEndpoint={IMAGEKIT_BASE_URL}
             src={artwork.mediaUrl}
             controls
-            className="w-full h-full object-cover max-h-80"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             width={_DIMENSIONS.square.width}
             height={_DIMENSIONS.square.height}
           />
         )}
+        
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        
+        {/* Hover Overlay Content */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="flex gap-3">
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              whileHover={{ y: 0, opacity: 1 }}
+              className="p-3 glass rounded-full border border-white/20"
+            >
+              <Eye className="w-5 h-5 text-white" />
+            </motion.div>
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              whileHover={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.1 }}
+              className="p-3 glass rounded-full border border-white/20"
+            >
+              <ShoppingBag className="w-5 h-5 text-white" />
+            </motion.div>
+          </div>
+        </div>
       </div>
 
-      {/* Text Content */}
-      <div className="p-4 flex flex-col justify-between sm:w-1/2 w-full">
-        <div>
-          <h3 className="text-xl font-semibold text-gray-900">{artwork.title}</h3>
-          <p className="text-gray-600 text-sm mt-2 line-clamp-2">{artwork.description}</p>
-        </div>
-        <div className="mt-4">
-          <p className="text-base font-semibold text-gray-800">
+      {/* Content */}
+      <div className="p-4 space-y-2">
+        <h3 className="text-lg font-bold text-white group-hover:text-purple-300 transition-colors">
+          {artwork.title}
+        </h3>
+        <p className="text-sm text-gray-400 line-clamp-2">
+          {artwork.description}
+        </p>
+        
+        <div className="flex items-center justify-between pt-2">
+          <span className="text-lg font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
             {artwork.price} {artwork.currency}
-          </p>
+          </span>
           {artwork.isSold && (
-            <p className="text-sm text-red-500 font-medium mt-1">Sold</p>
+            <span className="badge badge-pink">Sold</span>
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

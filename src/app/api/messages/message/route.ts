@@ -44,14 +44,36 @@ export async function POST(req: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const formData = await req.formData();
-    const conversationId = formData.get('conversationId') as string;
-    const content = formData.get('content') as string;
-    const type = formData.get('type') as string;
-    const media = formData.get('media') as File | null;
+    
+    const contentType = req.headers.get('content-type');
+    let conversationId: string;
+    let content: string;
+    let type: string;
+    let sharedContent: any;
+    let media: File | null;
+    
+    if (contentType?.includes('application/json')) {
+      // JSON request (for shared content)
+      const body = await req.json();
+      conversationId = body.conversationId;
+      content = body.content;
+      type = body.type;
+      sharedContent = body.sharedContent;
+      media = null;
+    } else {
+      // Form data request (for regular messages)
+      const formData = await req.formData();
+      conversationId = formData.get('conversationId') as string;
+      content = formData.get('content') as string;
+      type = formData.get('type') as string;
+      media = formData.get('media') as File | null;
+      sharedContent = null;
+    }
+    
     if (!conversationId) {
       return NextResponse.json({ error: 'Conversation ID required' }, { status: 400 });
     }
+    
     await connectDB();
     // Verify user is part of the conversation
     const conversation = await Conversation.findOne({
@@ -61,35 +83,41 @@ export async function POST(req: NextRequest) {
     if (!conversation) {
       return NextResponse.json({ error: 'Conversation not found' }, { status: 404 });
     }
+    
     const mediaUrl = '';
     const mediaType = '';
     // Handle media upload (implement if you have a media service)
     // if (media) { ... }
-    // Create message
+    
+    // Create message with shared content support
     const message = await Message.create({
       conversationId,
       senderId: session.user.id,
       content: content || '',
-      type: media ? mediaType : type,
+      type: type || 'text',
+      sharedContent: sharedContent || undefined,
       media: media ? {
         url: mediaUrl,
         type: mediaType
       } : undefined,
       seenBy: [session.user.id]
     });
+    
     // Update conversation's last message
     await Conversation.findByIdAndUpdate(conversationId, {
       lastMessage: {
-        content: content || '',
+        content: sharedContent ? `Shared a ${sharedContent.type}` : content || '',
         senderId: session.user.id,
         timestamp: message.timestamp,
-        type: media ? mediaType : type
+        type: type || 'text'
       },
       $set: { updatedAt: new Date() }
     });
+    
     const populatedMessage = await message.populate('senderId', 'username avatar');
     return NextResponse.json(populatedMessage);
-  } catch {
+  } catch (error) {
+    console.error('Message POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

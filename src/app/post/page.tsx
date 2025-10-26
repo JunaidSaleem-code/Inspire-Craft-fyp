@@ -1,44 +1,29 @@
 // components/PostList.tsx
 'use client'
-import { useState, useEffect } from 'react';
 import PostCard from '@/components/PostCard';
-import  {apiClient} from "@/lib/api-client";
-import { Post } from '../types/page';
-import PostSkeleton from '@/components/PostSkeleton';
+import CardSkeleton from '@/components/skeletons/CardSkeleton';
+import { usePosts } from '@/hooks/useData';
 
 const PostList = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState<boolean>(true); // For loading state
-  const [error, setError] = useState<string | null>(null); // For error state
-
-  // Fetch posts on component mount
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        setLoading(true); // Set loading to true while fetching
-        const response = await apiClient.getPosts();
-        setPosts(response);
-      } catch (error) {
-        setError('Failed to fetch posts');
-        console.error(error);
-      } finally {
-        setLoading(false); // Set loading to false after fetching
-      }
-    };
-
-    fetchPosts();
-  }, []);
-
+  const { data: posts, isLoading: loading, error } = usePosts();
 
   // If the data is still loading
   if (loading) {
     return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 m-4">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <PostSkeleton key={i} />
-      ))}
-    </div>
-  );
+      <div className='min-h-screen bg-black pt-24 pb-24'>
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl md:text-5xl font-black mb-4">
+              <span className="gradient-text">Community Posts</span>
+            </h1>
+            <p className="text-gray-400 text-lg">See what the community is creating</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <CardSkeleton count={6} aspectRatio="square" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   // If there was an error while fetching
@@ -47,17 +32,21 @@ const PostList = () => {
   }
 
   return (
-    <div className='bg-gray-100'>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 m-4 ">
-  {posts.length === 0 ? (
-    <p className="text-center col-span-full text-gray-500">No posts available.</p>
-  ) : (
-    posts.map((post) => (
-      <PostCard key={post._id?.toString()} post={post} />
-    ))
-  )}
-</div>
-</div>
+    <div className='min-h-screen bg-black pt-24 pb-24'>
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4">
+            <span className="gradient-text">Community Posts</span>
+          </h1>
+          <p className="text-gray-400 text-base sm:text-lg">See what the community is creating</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {posts?.map((post) => (
+            <PostCard key={post._id?.toString()} post={post} />
+          ))}
+        </div>
+      </div>
+    </div>
   );
 };
 

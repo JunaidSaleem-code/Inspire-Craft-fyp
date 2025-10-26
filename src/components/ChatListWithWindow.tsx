@@ -5,6 +5,8 @@ import { EmojiPicker } from "./EmojiPicker";
 import { io, Socket } from "socket.io-client";
 import type { User } from "../types/index";
 import Image from "next/image";
+import { ArrowLeft } from "lucide-react";
+import SharedContentPreview from "./SharedContentPreview";
 
 interface Conversation {
   _id: string;
@@ -31,6 +33,18 @@ interface Message {
   media?: { url: string; type: string };
   seenBy: string[];
   reactions: { user: string; emoji: string }[];
+  sharedContent?: {
+    type: 'post' | 'artwork' | 'tutorial';
+    contentId: string;
+    title: string;
+    description?: string;
+    mediaUrl: string;
+    author: {
+      id: string;
+      username: string;
+      avatar?: string;
+    };
+  };
 }
 
 export default function ChatListWithWindow() {
@@ -51,6 +65,7 @@ export default function ChatListWithWindow() {
   const [dmSearch, setDmSearch] = useState("");
   const [dmResults, setDmResults] = useState<User[]>([]);
   const [dmSelected, setDmSelected] = useState<string>("");
+  const [showSidebar, setShowSidebar] = useState(true);
 
   useEffect(() => {
     if (session?.user?.id && !socket) {
@@ -66,12 +81,6 @@ export default function ChatListWithWindow() {
     fetch("/api/messages/conversations", { headers: { "x-user-id": session.user.id } })
       .then(res => res.json())
       .then(data => {
-        console.log("Fetched conversations:", data);
-        if (Array.isArray(data)) {
-          data.forEach(conv => {
-            console.log("Conversation participants:", conv.participants);
-          });
-        }
         setConversations(data);
       });
   }, [session?.user?.id]);
@@ -95,6 +104,13 @@ export default function ChatListWithWindow() {
       }
     };
   }, [selectedConversation, session?.user?.id, socket]);
+
+  // On mobile, hide sidebar when conversation selected
+  useEffect(() => {
+    if (selectedConversation && window.innerWidth < 768) {
+      setShowSidebar(false);
+    }
+  }, [selectedConversation]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -209,116 +225,202 @@ export default function ChatListWithWindow() {
     (m, i, arr) => arr.findIndex(x => x._id === m._id) === i
   );
 
-  if (!session?.user?.id) return <div className="p-8 text-center">Please log in to use chat.</div>;
+  if (!session?.user?.id) return <div className="p-8 text-center text-white">Please log in to use chat.</div>;
 
   return (
-    <div className="flex h-[80vh] border rounded-xl overflow-hidden shadow-lg">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-12rem)] bg-black rounded-2xl overflow-hidden border border-white/10">
       {/* Conversation List */}
-      <div className="w-1/3 border-r bg-white flex flex-col">
-        <div className="p-4 border-b flex justify-between items-center">
-          <span className="font-bold text-lg">Chats</span>
+      <div className={`w-full md:w-80 glass-strong border-r border-white/10 flex flex-col transition-all duration-300 ${
+        !showSidebar && selectedConversation ? 'hidden md:flex' : 'flex'
+      }`}>
+        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-black/40">
+          <span className="font-bold text-lg text-white">Chats</span>
           <div className="flex gap-2">
-            <button className="text-indigo-600" onClick={() => setShowNewDM(true)}>New Message</button>
-            <button className="text-indigo-600" onClick={() => setShowNewGroup(true)}>+ Group</button>
+            <button 
+              className="text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium"
+              onClick={() => setShowNewDM(true)}
+            >
+              New
+            </button>
+            <button 
+              className="text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium"
+              onClick={() => setShowNewGroup(true)}
+            >
+              + Group
+            </button>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto">
-  {conversations.map(conv => (
-    <div key={conv._id} className={`p-4 cursor-pointer hover:bg-gray-100 ${selectedConversation?._id === conv._id ? "bg-gray-100" : ""}`} onClick={() => setSelectedConversation(conv)}>
-      <div className="font-semibold">{conv.name || conv.participants.find((u: User) => u._id !== session.user.id)?.username || "DM"}</div>
-      <div className="text-xs text-gray-500 truncate">{conv.lastMessage?.content || "No messages yet"}</div>
-    </div>
-  ))}
+        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+          {conversations.map(conv => (
+            <div 
+              key={conv._id} 
+              className={`p-3 cursor-pointer border-b border-white/5 transition-colors hover:bg-white/5 ${
+                selectedConversation?._id === conv._id ? "bg-white/10" : ""
+              }`} 
+              onClick={() => setSelectedConversation(conv)}
+            >
+              <div className="font-semibold text-white text-sm">
+                {conv.name || conv.participants.find((u: User) => u._id !== session.user.id)?.username || "DM"}
+              </div>
+              <div className="text-xs text-gray-400 truncate mt-1">
+                {conv.lastMessage?.content || "No messages yet"}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
+      
       {/* Chat Window */}
-      <div className="flex-1 flex flex-col bg-gray-50">
+      <div className={`flex-1 flex flex-col bg-black/60 ${
+        !selectedConversation ? 'hidden md:flex' : 'flex'
+      }`}>
         {selectedConversation ? (
           <>
-            <div className="p-4 border-b font-semibold flex items-center gap-2">
-              {selectedConversation.name || selectedConversation.participants.find((u: User) => u._id !== session.user.id)?.username || "DM"}
+            <div className="p-4 border-b border-white/10 font-semibold flex items-center gap-2 bg-black/40 text-white">
+              <button
+                onClick={() => {
+                  setSelectedConversation(null);
+                  setShowSidebar(true);
+                }}
+                className="md:hidden p-1 hover:bg-white/10 rounded transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <span>
+                {selectedConversation.name || selectedConversation.participants.find((u: User) => u._id !== session.user.id)?.username || "DM"}
+              </span>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">
-  {uniqueMessages.length > 0 ? uniqueMessages.map((msg) => {
-  // Extract senderId string from msg.senderId object or string
-  const senderIdStr = typeof msg.senderId === "string" ? msg.senderId : (msg.senderId?._id ?? "");
-  let sender = selectedConversation?.participants.find((u: User) => String(u._id) === String(senderIdStr));
-  if (!sender) {
-    // Fallback: try to find sender in userResults
-    sender = userResults.find((u: User) => String(u._id) === String(senderIdStr));
-  }
-  console.log("Message sender:", sender, "Message:", msg);
-  const isMine = String(senderIdStr) === String(session?.user?.id);
-  const senderUsername = sender && typeof sender.username === "string" && !isMine ? sender.username : "";
-  const senderAvatar = sender && typeof sender.avatar === "string" && sender.avatar.length > 0 ? sender.avatar : "/default-avatar.png";
-  return (
-    <div key={msg._id} className={`mb-2 flex ${isMine ? "justify-end" : "justify-start"} items-end`}>
-      {!isMine && (
-        <Image
-          src={senderAvatar}
-          alt={senderUsername}
-          className="w-8 h-8 rounded-full mr-2 border"
-        />
-      )}
-      <div className={`flex flex-col rounded-lg px-3 py-2 max-w-[60%] ${isMine ? "bg-indigo-500 text-white" : "bg-white border"}`}>
-        {senderUsername && <span className="text-xs text-gray-500 mb-1">{senderUsername}</span>}
-        {msg.type === "text" ? msg.content : <span>[media]</span>}
-      </div>
-      {isMine && (
-        <Image
-          src={senderAvatar}
-          alt={senderUsername}
-          className="w-8 h-8 rounded-full ml-2 border"
-        />
-      )}
-    </div>
-  );
-}) : (
-  <div className="text-center text-gray-500">No messages to display</div>
-)}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+              {uniqueMessages.length > 0 ? uniqueMessages.map((msg) => {
+                // Extract senderId string from msg.senderId object or string
+                const senderIdStr = typeof msg.senderId === "string" ? msg.senderId : (msg.senderId?._id ?? "");
+                let sender = selectedConversation?.participants.find((u: User) => String(u._id) === String(senderIdStr));
+                if (!sender) {
+                  // Fallback: try to find sender in userResults
+                  sender = userResults.find((u: User) => String(u._id) === String(senderIdStr));
+                }
+                const isMine = String(senderIdStr) === String(session?.user?.id);
+                const senderUsername = sender && typeof sender.username === "string" && !isMine ? sender.username : "";
+                const senderAvatar = sender && typeof sender.avatar === "string" && sender.avatar.length > 0 ? sender.avatar : "/default-avatar.png";
+                return (
+                  <div key={msg._id} className={`flex ${isMine ? "justify-end" : "justify-start"} items-end gap-2`}>
+                    {!isMine && (
+                      <Image
+                        src={senderAvatar}
+                        alt={senderUsername}
+                        className="w-8 h-8 rounded-full border-2 border-purple-500/50 object-cover"
+                        width={32}
+                        height={32}
+                      />
+                    )}
+                    <div className={`flex flex-col ${msg.sharedContent ? 'max-w-full' : 'max-w-[70%]'}`}>
+                      <div className={`rounded-xl px-4 py-2 ${
+                        isMine 
+                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white" 
+                          : "glass border border-white/20 text-white"
+                      }`}>
+                        {senderUsername && <span className="text-xs text-gray-300 mb-1">{senderUsername}</span>}
+                        {msg.sharedContent ? (
+                          <SharedContentPreview
+                            type={msg.sharedContent.type}
+                            contentId={msg.sharedContent.contentId}
+                            title={msg.sharedContent.title}
+                            description={msg.sharedContent.description}
+                            mediaUrl={msg.sharedContent.mediaUrl}
+                            author={msg.sharedContent.author}
+                          />
+                        ) : msg.type === "text" ? (
+                          msg.content
+                        ) : (
+                          <span>[media]</span>
+                        )}
+                      </div>
+                    </div>
+                    {isMine && (
+                      <Image
+                        src={senderAvatar}
+                        alt={senderUsername}
+                        className="w-8 h-8 rounded-full border-2 border-purple-500/50 object-cover"
+                        width={32}
+                        height={32}
+                      />
+                    )}
+                  </div>
+                );
+              }) : (
+                <div className="text-center text-gray-400">No messages to display</div>
+              )}
               <div ref={messagesEndRef} />
             </div>
-            <div className="p-4 border-t flex items-center gap-2">
-              <button onClick={() => setShowEmojiPicker(v => !v)} className="text-xl">😊</button>
-              {showEmojiPicker && (
-                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10">
-                  <EmojiPicker onEmojiSelect={e => setMessage(m => m + e)} />
-                </div>
-              )}
-              <input
-                className="flex-1 border rounded px-3 py-2"
-                value={message}
-                onChange={e => setMessage(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") handleSendMessage(); }}
-                placeholder="Type a message..."
-              />
-              <button onClick={handleSendMessage} className="bg-indigo-500 text-white px-4 py-2 rounded">Send</button>
+            <div className="p-4 border-t border-white/10 bg-black/40">
+              <div className="flex items-center gap-2">
+                <button 
+                  onClick={() => setShowEmojiPicker(v => !v)} 
+                  className="text-2xl hover:scale-110 transition-transform"
+                >
+                  😊
+                </button>
+                {showEmojiPicker && (
+                  <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10">
+                    <EmojiPicker onEmojiSelect={e => setMessage(m => m + e)} />
+                  </div>
+                )}
+                <input
+                  className="flex-1 px-4 py-3 glass border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 text-sm md:text-base"
+                  value={message}
+                  onChange={e => setMessage(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") handleSendMessage(); }}
+                  placeholder="Type a message..."
+                />
+                <button 
+                  onClick={handleSendMessage} 
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold transition-all hover:scale-105"
+                >
+                  Send
+                </button>
+              </div>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-400">Select a conversation</div>
+          <div className="flex-1 flex items-center justify-center text-gray-400">
+            <div className="text-center">
+              <div className="text-6xl mb-4">💬</div>
+              <p>Select a conversation to start messaging</p>
+            </div>
+          </div>
         )}
       </div>
+      
       {/* New Group Modal */}
       {showNewGroup && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="font-bold mb-2">Create Group</div>
-            <input className="border rounded px-3 py-2 w-full mb-2" placeholder="Group name" value={groupName} onChange={e => setGroupName(e.target.value)} />
-            <input className="border rounded px-3 py-2 w-full mb-2" placeholder="Add users..." value={searchUser} onChange={e => handleUserSearch(e.target.value)} />
-            <div className="mb-2 flex flex-wrap gap-1">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass-strong rounded-2xl p-6 w-full max-w-md border border-white/20">
+            <div className="font-bold mb-4 text-white text-xl">Create Group</div>
+            <input 
+              className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 mb-3" 
+              placeholder="Group name" 
+              value={groupName} 
+              onChange={e => setGroupName(e.target.value)} 
+            />
+            <input 
+              className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 mb-3" 
+              placeholder="Add users..." 
+              value={searchUser} 
+              onChange={e => handleUserSearch(e.target.value)} 
+            />
+            <div className="mb-3 flex flex-wrap gap-2">
               {groupUsers.map(uid => {
                 const user = uniqueUserResults.find(u => u._id === uid);
                 return (
-                  <span key={uid} className="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full text-xs">
+                  <span key={uid} className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 py-1 rounded-full text-xs font-medium">
                     {user?.username || user?.username || user?.email || uid}
                   </span>
                 );
               })}
             </div>
-            <div className="max-h-32 overflow-y-auto mb-2">
+            <div className="max-h-32 overflow-y-auto mb-4 scrollbar-thin scrollbar-thumb-white/20">
               {uniqueUserResults.map((u: User) => (
-                <label key={u._id} className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer rounded">
+                <label key={u._id} className="flex items-center gap-2 p-2 hover:bg-white/5 cursor-pointer rounded">
                   <input
                     type="checkbox"
                     checked={groupUsers.includes(u._id)}
@@ -329,40 +431,69 @@ export default function ChatListWithWindow() {
                         setGroupUsers(prev => prev.filter(id => id !== u._id));
                       }
                     }}
+                    className="rounded"
                   />
-                  <span>{u.username || u.username || u.email || u._id}</span>
+                  <span className="text-white text-sm">{u.username || u.username || u.email || u._id}</span>
                 </label>
               ))}
             </div>
             <div className="flex gap-2 justify-end">
-              <button className="px-4 py-2 rounded bg-gray-200" onClick={() => setShowNewGroup(false)}>Cancel</button>
-              <button className="px-4 py-2 rounded bg-indigo-500 text-white" onClick={handleCreateGroup}>Create</button>
+              <button 
+                className="px-4 py-2 rounded-lg glass border border-white/20 text-white hover:bg-white/10 transition-colors" 
+                onClick={() => setShowNewGroup(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-700 hover:to-pink-700 transition-all" 
+                onClick={handleCreateGroup}
+              >
+                Create
+              </button>
             </div>
           </div>
         </div>
       )}
+      
       {/* New DM Modal */}
       {showNewDM && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <div className="font-bold mb-2">Start New Message</div>
-            <input className="border rounded px-3 py-2 w-full mb-2" placeholder="Search users..." value={dmSearch} onChange={e => handleDmUserSearch(e.target.value)} />
-            <div className="max-h-40 overflow-y-auto mb-4">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="glass-strong rounded-2xl p-6 w-full max-w-md border border-white/20">
+            <div className="font-bold mb-4 text-white text-xl">Start New Message</div>
+            <input 
+              className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 mb-4" 
+              placeholder="Search users..." 
+              value={dmSearch} 
+              onChange={e => handleDmUserSearch(e.target.value)} 
+            />
+            <div className="max-h-40 overflow-y-auto mb-4 scrollbar-thin scrollbar-thumb-white/20">
               {uniqueDmResults.map((u: User) => (
-                <label key={u._id} className="flex items-center gap-2 p-2 hover:bg-gray-100 cursor-pointer rounded">
+                <label key={u._id} className="flex items-center gap-2 p-2 hover:bg-white/5 cursor-pointer rounded">
                   <input
                     type="radio"
                     name="dm-user"
                     checked={dmSelected === u._id}
                     onChange={() => setDmSelected(u._id)}
+                    className="rounded"
                   />
-                  <span>{u.username || u.username || u.email || u._id}</span>
+                  <span className="text-white text-sm">{u.username || u.username || u.email || u._id}</span>
                 </label>
               ))}
             </div>
             <div className="flex gap-2 justify-end">
-              <button className="px-4 py-2 rounded bg-gray-200" onClick={() => setShowNewDM(false)}>Cancel</button>
-              <button className="px-4 py-2 rounded bg-indigo-500 text-white" onClick={handleStartDM} disabled={!dmSelected}>Start Chat</button>
+              <button 
+                className="px-4 py-2 rounded-lg glass border border-white/20 text-white hover:bg-white/10 transition-colors" 
+                onClick={() => setShowNewDM(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:from-purple-700 hover:to-pink-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+                onClick={handleStartDM} 
+                disabled={!dmSelected}
+              >
+                Start Chat
+              </button>
             </div>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiClient } from "@/lib/api-client";
 import { Loader2 } from "lucide-react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { useNotification } from "@/components/Notification";
 import { useParams } from "next/navigation";
 import Image from "next/image";
@@ -147,26 +148,23 @@ export default function EditPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[40vh]">
-        <Loader2 className="animate-spin w-6 h-6 text-indigo-500" />
-      </div>
-    );
+    return <LoadingSpinner text="Loading content..." />;
   }
 
   return (
-    <div className="container mx-auto max-w-3xl px-4 py-10">
-      <div className="bg-white border border-gray-200 p-8 rounded-3xl shadow-xl">
-        <h1 className="text-3xl font-bold text-center text-indigo-700 mb-6">
-          ✏️ Edit {category}
-        </h1>
+    <div className="min-h-screen bg-black pt-24 pb-24">
+      <div className="container mx-auto max-w-3xl px-4 py-10">
+        <div className="glass-strong border border-white/20 p-8 rounded-3xl shadow-xl">
+          <h1 className="text-3xl font-bold text-center mb-6">
+            <span className="gradient-text">✏️ Edit {category}</span>
+          </h1>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-indigo-600 mb-1">Title</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Title</label>
             <input
               type="text"
-              className="input input-bordered w-full"
+              className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all bg-black/50"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
@@ -174,9 +172,9 @@ export default function EditPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-indigo-600 mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Description</label>
             <textarea
-              className="textarea textarea-bordered w-full"
+              className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all bg-black/50"
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -186,10 +184,10 @@ export default function EditPage() {
 
           {category === "artwork" && (
             <div>
-              <label className="block text-sm font-medium text-indigo-600 mb-1">Price (PKR)</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Price (PKR)</label>
               <input
                 type="number"
-                className="input input-bordered w-full"
+                className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all bg-black/50"
                 placeholder="e.g. 3000"
                 min={0}
                 value={price}
@@ -204,7 +202,7 @@ export default function EditPage() {
 
           {mediaUrl && (
             <div className="mt-4">
-              <label className="block text-sm font-medium text-indigo-600 mb-1">Media Preview</label>
+              <label className="block text-sm font-medium text-gray-300 mb-1">Media Preview</label>
               {fileType === "image" ? (
                 // <img
                 //   src={mediaUrl}
@@ -225,13 +223,13 @@ export default function EditPage() {
           )}
 
           {error && (
-            <div className="text-red-500 font-medium text-sm">⚠️ {error}</div>
+            <div className="text-red-400 font-medium text-sm">⚠️ {error}</div>
           )}
 
           <div className="flex flex-wrap gap-4 justify-between mt-6">
             <button
               type="submit"
-              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-semibold text-sm shadow-xl hover:scale-[1.01] transition-all duration-300 disabled:opacity-50"
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-sm shadow-xl hover:scale-[1.01] transition-all duration-300 disabled:opacity-50"
               disabled={submitting}
             >
               {submitting ? (
@@ -247,7 +245,7 @@ export default function EditPage() {
               type="button"
               onClick={handleCancel}
               disabled={!isDirty}
-              className="flex-1 py-3 rounded-xl border border-gray-300 text-gray-700 font-medium text-sm hover:bg-gray-100 transition disabled:opacity-50"
+              className="flex-1 py-3 rounded-xl border border-white/20 glass text-gray-300 font-medium text-sm hover:bg-white/10 transition disabled:opacity-50"
             >
               Cancel
             </button>
@@ -255,12 +253,13 @@ export default function EditPage() {
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 py-3 rounded-xl border border-indigo-500 text-indigo-600 font-medium text-sm hover:bg-indigo-50 transition"
+              className="flex-1 py-3 rounded-xl border border-purple-500 glass text-purple-300 font-medium text-sm hover:bg-purple-500/10 transition"
             >
               Go Back
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

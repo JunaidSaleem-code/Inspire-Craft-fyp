@@ -7,11 +7,11 @@ import { authOptions } from "@/lib/auth";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     await connectDB();
-    const userId = params.userId;
+    const { userId } = await params;
     const user = await User.findById(userId)
       .select("-password")
       .populate("following", "username avatar")
@@ -30,13 +30,14 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     await connectDB();
+    const { userId } = await params;
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.id !== params.userId) {
+    if (!session || session.user.id !== userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
@@ -48,7 +49,7 @@ export async function PUT(
     }
 
     const updatedUser = await User.findByIdAndUpdate(
-      params.userId,
+      userId,
       updateData,
       { new: true }
     ).select("-password");
@@ -62,17 +63,18 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     await connectDB();
+    const { userId } = await params;
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.id !== params.userId) {
+    if (!session || session.user.id !== userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    await User.findByIdAndDelete(params.userId);
+    await User.findByIdAndDelete(userId);
     return NextResponse.json({ message: "User deleted" }, { status: 200 });
   } catch (error) {
     console.error("Error deleting user:", error);
@@ -82,17 +84,18 @@ export async function DELETE(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     await connectDB();
+    const { userId } = await params;
     const session = await getServerSession(authOptions);
-    if (!session || session.user.id !== params.userId) {
+    if (!session || session.user.id !== userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
     const updateData = await req.json();
-    const updatedUser = await User.findByIdAndUpdate(params.userId, updateData, {
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
       new: true,
     }).select("-password");
 

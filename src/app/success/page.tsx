@@ -33,6 +33,7 @@
 //   );
 // }
 import { useEffect, useState } from "react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const SuccessPage = () => {
   const [message, setMessage] = useState<string | null>(null);
@@ -73,9 +74,15 @@ const SuccessPage = () => {
     fetchTransactionStatus();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <LoadingSpinner text="Verifying payment..." />;
 
-  return <div>{message}</div>;
+  return (
+    <div className="min-h-screen bg-black pt-24 pb-24 flex items-center justify-center">
+      <div className="text-center text-white">
+        <p className="text-lg">{message}</p>
+      </div>
+    </div>
+  );
 };
 
 export default SuccessPage;

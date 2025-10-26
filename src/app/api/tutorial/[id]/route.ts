@@ -6,11 +6,11 @@ import Like from "@/models/Like";
 // GET /api/tutorial/[id]
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
-    const { id } =  params;
+    const { id } =  await params;
   
     if (!id || !/^[a-fA-F0-9]{24}$/.test(id)) {
       return NextResponse.json({ message: "Invalid ID" }, { status: 400 });
@@ -37,11 +37,11 @@ export async function GET(
 // DELETE /api/tutorial/[id]
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
-    const { id } =  params;
+    const { id } =  await params;
 
     const tutorial = await Tutorial.findById(id);
     console.log('tutorial',tutorial);
@@ -61,11 +61,11 @@ export async function DELETE(
 // PATCH /api/tutorial/[id]
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
-    const { id } =  params;
+    const { id } =  await params;
     const { title, description, category } = await req.json();
 
     if (!id || !/^[a-fA-F0-9]{24}$/.test(id)) {

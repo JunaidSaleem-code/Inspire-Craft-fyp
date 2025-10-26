@@ -11,7 +11,7 @@ import { IKUploadResponse } from "imagekitio-next/dist/types/components/IKUpload
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 
-export default function EditProfilePage({ params }: { params: { userId: string } }) {
+export default function EditProfilePage({ params }: { params: Promise<{ userId: string }> }) {
   const router = useRouter();
   const { showNotification } = useNotification();
 
@@ -21,10 +21,19 @@ export default function EditProfilePage({ params }: { params: { userId: string }
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
-
-  const userId = params.userId;
+  const [userId, setUserId] = useState<string>("");
 
   useEffect(() => {
+    async function getParams() {
+      const resolvedParams = await params;
+      setUserId(resolvedParams.userId);
+    }
+    getParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (!userId) return;
+    
     const fetchProfile = async () => {
       try {
         const data = await apiClient.getUserById(userId);

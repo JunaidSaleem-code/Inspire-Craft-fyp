@@ -13,17 +13,29 @@ import AIImageCard from "@/components/AIImageCard";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Artwork, GeneratedImage, Post, Tutorial, User } from "@/app/types/page";
+import { motion } from "framer-motion";
+import { UserPlus, UserMinus, Edit, Sparkles } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import CardSkeleton from "@/components/skeletons/CardSkeleton";
 
 type TabType = "artworks" | "posts" | "tutorials" | "aiImages";
 
 const TABS: TabType[] = ["artworks", "posts", "tutorials", "aiImages"];
 
-export default function ProfilePage({ params }: { params: { id?: string } }) {
+export default function ProfilePage({ params }: { params: Promise<{ id?: string }> }) {
   const { data: session } = useSession();
   const { showNotification } = useNotification();
   const router = useRouter();
+  const [profileUserId, setProfileUserId] = useState<string | undefined>();
 
-  const profileUserId = params?.id || session?.user?.id;
+  useEffect(() => {
+    async function getParams() {
+      const resolvedParams = await params;
+      setProfileUserId(resolvedParams?.id || session?.user?.id);
+    }
+    getParams();
+  }, [params, session?.user?.id]);
+  
   const isOwnProfile = session?.user?.id === profileUserId;
 
   const [userProfile, setUserProfile] = useState<User>();
@@ -35,6 +47,7 @@ export default function ProfilePage({ params }: { params: { id?: string } }) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [tutorials, setTutorials] = useState<Tutorial[]>([]);
   const [aiImages, setAiImages] = useState<GeneratedImage[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [activeTab, setActiveTab] = useState<TabType>("artworks");
   const [loadedTabs, setLoadedTabs] = useState<Record<TabType, boolean>>({
@@ -51,7 +64,6 @@ export default function ProfilePage({ params }: { params: { id?: string } }) {
       try {
         const userRes = await apiClient.getUserById(profileUserId);
         setUserProfile(userRes);
-        console.log('userRes', userRes);
 
         const artworksRes = await apiClient.getArtworksByUser(profileUserId);
         setArtworks(artworksRes);
@@ -65,11 +77,37 @@ export default function ProfilePage({ params }: { params: { id?: string } }) {
         }
       } catch {
         showNotification("Failed to load profile", "error");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProfile();
   }, [profileUserId, session?.user?.id, isOwnProfile, showNotification]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black pt-24 pb-24">
+        <div className="max-w-6xl mx-auto px-4 py-8">
+          {/* Profile header skeleton */}
+          <div className="glass-strong rounded-3xl p-8 mb-8 border border-white/20">
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+              <Skeleton className="w-40 h-40 rounded-full" />
+              <div className="flex-1 space-y-3 w-full">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-64" />
+                <Skeleton className="h-10 w-32" />
+              </div>
+            </div>
+          </div>
+          {/* Content skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <CardSkeleton count={6} aspectRatio="square" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
 
   const handleTabClick = async (tab: TabType) => {
@@ -110,88 +148,200 @@ export default function ProfilePage({ params }: { params: { id?: string } }) {
 
   if (!session) return <div>Please log in to view profiles.</div>;
 
-  return (
-    <div className="min-h-screen bg-gray-100">
-      <div className="container mx-auto px-4 py-8">
-        {/* Profile Info */}
-        <div className="bg-white p-6 rounded-xl shadow-md text-center md:text-left">
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            <Image
-              src={userProfile?.avatar || "/default-avatar.png"}
-              alt="Profile"
-              width={128}
-              height={128}
-              className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
-            />
-            <div>
-              <h2 className="text-3xl font-bold text-indigo-700">{userProfile?.username}</h2>
-              <p className="text-gray-700 mt-1">{userProfile?.bio || "No bio provided."}</p>
-              <div className="mt-2 flex gap-4 text-sm text-gray-600">
-                <span><strong>{followerCount}</strong> Followers</span>
-                <span><strong>{followingCount}</strong> Following</span>
-              </div>
+  const tabColors = {
+    artworks: "from-purple-600 to-pink-600",
+    posts: "from-pink-600 to-red-600",
+    tutorials: "from-orange-600 to-yellow-600",
+    aiImages: "from-green-600 to-teal-600",
+  };
 
-              {!isOwnProfile &&
-               (
-                <button
-                  onClick={handleFollowToggle}
-                  className={`mt-3 px-4 py-2 rounded-lg text-white font-medium ${
-                    isFollowing ? "bg-red-500 hover:bg-red-600" : "bg-blue-600 hover:bg-blue-700"
-                  }`}
-                >
-                  {isFollowing ? "Unfollow" : "Follow"}
-                </button>
-              )
-              }
+  return (
+    <div className="min-h-screen bg-black pt-24 pb-20">
+      <div className="container mx-auto px-4 py-8">
+        {/* Profile Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="glass-strong rounded-3xl p-8 mb-8 border border-white/20"
+        >
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+            {/* Avatar */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur-xl opacity-50"></div>
+              <Image
+                src={userProfile?.avatar || "/default-avatar.png"}
+                alt="Profile"
+                width={160}
+                height={160}
+                className="relative w-40 h-40 rounded-full border-4 border-white/20 shadow-2xl object-cover"
+              />
               {isOwnProfile && (
-                <Button
-                  onClick={() => router.push("/profile/edit/" + userProfile?._id)}
-                  className="mt-3 px-4 py-2 rounded-lg text-white font-medium bg-blue-600 hover:bg-blue-700"
-                >
-                  Edit Profile
-                </Button>
+                <div className="absolute bottom-2 right-2 p-2 glass rounded-full border border-white/20">
+                  <Sparkles className="w-4 h-4 text-purple-400" />
+                </div>
               )}
             </div>
+
+            {/* Profile Info */}
+            <div className="flex-1 text-center md:text-left">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3">
+                {userProfile?.username}
+              </h2>
+              <p className="text-gray-400 text-lg mb-6 max-w-2xl">
+                {userProfile?.bio || "No bio provided."}
+              </p>
+
+              {/* Stats */}
+              <div className="flex flex-wrap gap-3 sm:gap-6 mb-6 justify-center md:justify-start">
+                <div className="glass rounded-xl px-6 py-3 border border-white/10">
+                  <div className="text-2xl font-bold text-white">{followerCount}</div>
+                  <div className="text-sm text-gray-400">Followers</div>
+                </div>
+                <div className="glass rounded-xl px-6 py-3 border border-white/10">
+                  <div className="text-2xl font-bold text-white">{followingCount}</div>
+                  <div className="text-sm text-gray-400">Following</div>
+                </div>
+                <div className="glass rounded-xl px-6 py-3 border border-white/10">
+                  <div className="text-2xl font-bold text-white">{artworks.length}</div>
+                  <div className="text-sm text-gray-400">Artworks</div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 justify-center md:justify-start">
+                {!isOwnProfile ? (
+                  <Button
+                    onClick={handleFollowToggle}
+                    className={`${
+                      isFollowing
+                        ? "glass border-white/30 text-white hover:bg-red-500/20"
+                        : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                    } px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105`}
+                  >
+                    {isFollowing ? (
+                      <>
+                        <UserMinus className="w-4 h-4 mr-2" />
+                        Unfollow
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Follow
+                      </>
+                    )}
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => router.push("/profile/edit/" + userProfile?._id)}
+                    className="glass border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Profile
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Tabs */}
-        <div className="mt-6 flex justify-center gap-4 flex-wrap">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="flex justify-center gap-3 mb-12 flex-wrap"
+        >
           {TABS.map((tab) => (
             <button
               key={tab}
               onClick={() => handleTabClick(tab)}
-              className={`px-6 py-2 rounded-lg text-white transition ${
+              className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
                 activeTab === tab
-                  ? "bg-black"
-                  : tab === "artworks"
-                  ? "bg-indigo-600 hover:bg-indigo-700"
-                  : tab === "posts"
-                  ? "bg-purple-600 hover:bg-purple-700"
-                  : tab === "tutorials"
-                  ? "bg-pink-600 hover:bg-pink-700"
-                  : "bg-yellow-600 hover:bg-yellow-700"
+                  ? `bg-gradient-to-r ${tabColors[tab]} text-white shadow-lg scale-105`
+                  : "glass border border-white/20 text-gray-300 hover:border-white/40 hover:scale-105"
               }`}
             >
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
-        </div>
+        </motion.div>
 
         {/* Tab Content */}
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8"
+        >
           {activeTab === "artworks" &&
-            artworks.map((art) => <ArtworkCard key={art._id?.toString()} artwork={art} />)}
+            artworks.map((art, index) => (
+              <motion.div
+                key={art._id?.toString()}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <ArtworkCard artwork={art} />
+              </motion.div>
+            ))}
 
           {activeTab === "posts" &&
-            posts.map((post) => <PostCard key={post._id!.toString()} post={post} />)}
+            posts.map((post, index) => (
+              <motion.div
+                key={post._id!.toString()}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <PostCard post={post} />
+              </motion.div>
+            ))}
 
           {activeTab === "tutorials" &&
-            tutorials.map((tutorial) => <TutorialCard key={tutorial._id!.toString()} tutorial={tutorial} />)}
+            tutorials.map((tutorial, index) => (
+              <motion.div
+                key={tutorial._id!.toString()}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <TutorialCard tutorial={tutorial} />
+              </motion.div>
+            ))}
 
           {activeTab === "aiImages" &&
-            aiImages.map((image) => <AIImageCard key={image._id} image={image} />)}
-        </div>
+            aiImages.map((image, index) => (
+              <motion.div
+                key={image._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <AIImageCard image={image} />
+              </motion.div>
+            ))}
+        </motion.div>
+
+        {/* Empty State */}
+        {((activeTab === "artworks" && artworks.length === 0) ||
+          (activeTab === "posts" && posts.length === 0) ||
+          (activeTab === "tutorials" && tutorials.length === 0) ||
+          (activeTab === "aiImages" && aiImages.length === 0)) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-20"
+          >
+            <div className="w-24 h-24 mx-auto mb-6 glass rounded-full flex items-center justify-center border border-white/20">
+              <Sparkles className="w-12 h-12 text-gray-500" />
+            </div>
+            <p className="text-gray-400 text-xl">No {activeTab} yet</p>
+            <p className="text-gray-500 text-sm mt-2">
+              {isOwnProfile ? "Start creating and sharing your work!" : "Check back later"}
+            </p>
+          </motion.div>
+        )}
       </div>
     </div>
   );

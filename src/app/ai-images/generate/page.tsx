@@ -38,66 +38,77 @@ export default function AIGeneratePage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e] text-white p-6 flex flex-col items-center justify-center gap-6">
-      <h1 className="text-4xl font-bold text-center drop-shadow-xl">AI Image Generator 🎨</h1>
-      <div className="w-full max-w-md flex flex-col gap-4 items-center">
-        <Input
-          placeholder="Enter your creative prompt..."
-          value={prompt}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrompt(e.target.value)}
-          className="rounded-xl bg-white text-black placeholder:text-gray-600"
-        />
-        <Button
-          onClick={generateImage}
-          className="px-6 py-2 text-lg bg-purple-600 hover:bg-purple-800 transition rounded-xl"
-          disabled={loading || !prompt}
-        >
-          {loading ? "Generating..." : "Generate"}
-        </Button>
-      </div>
+    <div className="min-h-screen bg-black pt-24 pb-24">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl md:text-5xl font-black mb-2">
+            <span className="gradient-text">AI Image Generator</span>
+          </h1>
+          <p className="text-gray-400">Transform your ideas into stunning visuals</p>
+        </div>
 
-      {image && (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.95 }}
-    animate={{ opacity: 1, scale: 1 }}
-    className="mt-10 w-full max-w-2xl flex flex-col items-center gap-4"
-  >
-    {/* Image Box */}
-    <div className="w-full overflow-hidden rounded-xl border border-white/10 bg-white">
-      <Image
-        src={image.mediaUrl}
-            width= {image.transformation?.width || 1024}
-            height= {image.transformation?.height || 1024}
-        alt={image.prompt}
-        loading="eager"
-        className="w-full h-auto object-contain"
-      />
+        <div className="w-full max-w-2xl mx-auto">
+          <div className="glass-strong rounded-2xl p-8 border border-white/20 mb-8">
+            <div className="flex flex-col gap-4">
+              <Input
+                placeholder="Enter your creative prompt..."
+                value={prompt}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPrompt(e.target.value)}
+                className="glass border border-white/20 text-white placeholder:text-gray-500"
+              />
+              <Button
+                onClick={generateImage}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-8 py-6 text-lg font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || !prompt}
+              >
+                {loading ? "Generating..." : "Generate Image"}
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {image && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="glass-strong rounded-2xl p-6 border border-white/20"
+          >
+            {/* Image */}
+            <div className="w-full overflow-hidden rounded-xl bg-black mb-6">
+              <Image
+                src={image.mediaUrl}
+                width={image.transformation?.width || 1024}
+                height={image.transformation?.height || 1024}
+                alt={image.prompt}
+                loading="eager"
+                className="w-full h-auto object-contain"
+              />
+            </div>
+
+            {/* Info Box */}
+            <div className="space-y-4 text-gray-300">
+              <div>
+                <p className="text-sm text-gray-400 mb-1">Prompt:</p>
+                <p className="text-lg italic text-white">{image.prompt}</p>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm">
+                  <strong>Status:</strong>{" "}
+                  <span className={image.isPublic ? "text-green-400" : "text-red-400"}>
+                    {image.isPublic ? "🌐 Public" : "🔒 Private"}
+                  </span>
+                </div>
+                <Button 
+                  onClick={toggleVisibility} 
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                >
+                  Make {image.isPublic ? "Private" : "Public"}
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </div>
     </div>
-
-    {/* Info Box */}
-    <div className="w-full bg-white/5 backdrop-blur-sm rounded-xl border border-white/10 p-4 text-white text-sm space-y-2">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <p><strong>Prompt:</strong> <em>{image.prompt}</em></p>
-        <p className="text-xs text-white/60">
-          Generated: {new Date(image.createdAt!).toLocaleDateString()}
-        </p>
-      </div>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <p>
-          <strong>Status:</strong>{" "}
-          <span className={image.isPublic ? "text-green-400" : "text-red-400"}>
-            {image.isPublic ? "🌐 Public" : "🔒 Private"}
-          </span>
-        </p>
-        <Button onClick={toggleVisibility} className="bg-purple-600 hover:bg-purple-800">
-          Make {image.isPublic ? "Private" : "Public"}
-        </Button>
-      </div>
-    </div>
-  </motion.div>
-)}
-
-
-    </main>
   );
 }

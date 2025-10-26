@@ -133,135 +133,154 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-10 max-w-3xl mb-10">
-      <div className="bg-gradient-to-tr from-white via-indigo-50 to-purple-100 border border-purple-200 p-8 rounded-3xl shadow-xl">
-        <h1 className="text-3xl font-bold text-center text-indigo-700 mb-6">📤 Upload Your Content</h1>
+    <div className="min-h-screen bg-black pt-24 pb-20">
+      <div className="container mx-auto px-4 py-10 max-w-3xl">
+        <div className="glass-strong border border-white/20 p-8 rounded-3xl shadow-2xl">
+          <div className="text-center mb-8">
+            <h1 className="text-5xl font-black text-white mb-2">
+              <span className="gradient-text">Upload Your Art</span>
+            </h1>
+            <p className="text-gray-400">Share your creativity with the world</p>
+          </div>
 
-        <div className="flex gap-4 mb-6">
-          <select
-            className="select select-bordered w-full"
-            value={category}
-            onChange={(e) => {
-              const newCategory = e.target.value as typeof category;
-              setCategory(newCategory);
-              setFileType(newCategory === "tutorial" ? "video" : "image");
-            }}
-          >
-            <option value="post">Post</option>
-            <option value="tutorial">Tutorial</option>
-            <option value="artwork">Artwork</option>
-          </select>
-
-          {category !== "tutorial" && (
+          <div className="flex gap-4 mb-6">
             <select
-              className="select select-bordered w-full"
-              value={fileType}
-              onChange={(e) => setFileType(e.target.value as typeof fileType)}
+              className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all bg-black/50"
+              value={category}
+              onChange={(e) => {
+                const newCategory = e.target.value as typeof category;
+                setCategory(newCategory);
+                setFileType(newCategory === "tutorial" ? "video" : "image");
+              }}
             >
-              <option value="image">Image</option>
-              <option value="video">Video</option>
+              <option value="post" className="bg-black">Post</option>
+              <option value="tutorial" className="bg-black">Tutorial</option>
+              <option value="artwork" className="bg-black">Artwork</option>
             </select>
-          )}
-        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-indigo-600 mb-1">Title</label>
-            <input
-              type="text"
-              className="input input-bordered w-full"
-              placeholder="e.g. Stunning Landscape"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
+            {category !== "tutorial" && (
+              <select
+                className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all bg-black/50"
+                value={fileType}
+                onChange={(e) => setFileType(e.target.value as typeof fileType)}
+              >
+                <option value="image" className="bg-black">Image</option>
+                <option value="video" className="bg-black">Video</option>
+              </select>
+            )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-indigo-600 mb-1">Description</label>
-            <textarea
-              className="textarea textarea-bordered w-full"
-              rows={3}
-              placeholder="Describe your creative piece..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-            />
-          </div>
-
-          {category === "artwork" && (
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-indigo-600 mb-1">Price (PKR)</label>
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Title</label>
               <input
-                type="number"
-                className="input input-bordered w-full"
-                placeholder="e.g. 3000"
-                min={0}
-                value={price}
-                onChange={(e) => setPrice(e.target.value === "" ? "" : Number(e.target.value))}
+                type="text"
+                className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                placeholder="e.g. Stunning Landscape"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 required
               />
             </div>
-          )}
 
-          <div>
-            <label className="block text-sm font-medium text-indigo-600 mb-1">Upload File</label>
-            <IKUpload
-              fileName={`${category}-${fileType}`}
-              folder={categoryFolderPaths[category]}
-              onError={handleError}
-              onSuccess={handleSuccess}
-              onUploadStart={handleStartUpload}
-              accept={fileType === "video" ? "video/*" : "image/*"}
-              onUploadProgress={(progressEvent) => {
-                const progressPercent = Math.round((progressEvent.loaded / progressEvent.total) * 100);
-                setProgress(progressPercent);
-              }}
-              useUniqueFileName
-              validateFile={validateFile}
-              className="file-input file-input-bordered w-full"
-            />
-          </div>
-
-          {progress > 0 && progress < 100 && (
-            <div className="mt-4 w-full bg-gray-300 rounded h-2 overflow-hidden">
-              <div
-                className="h-2 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded transition-all duration-200"
-                style={{ width: `${progress}%` }}
+            <div>
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Description</label>
+              <textarea
+                className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all resize-none"
+                rows={4}
+                placeholder="Describe your creative piece..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
               />
             </div>
-          )}
 
-          {mediaUrl && (
-            <div className="mt-4">
-              {fileType === "image" ? (
-                <Image src={mediaUrl} alt="Uploaded"
-                width={500} height={500} className="w-full max-h-64 object-contain rounded-xl shadow" />
-              ) : (
-                <video controls className="w-full max-h-64 rounded-xl shadow">
-                  <source src={mediaUrl} type="video/mp4" width={500} height={500}/>
-                  
-                </video>
-              )}
-            </div>
-          )}
-
-          {error && <div className="text-red-500 font-medium text-sm">⚠️ {error}</div>}
-
-          <button
-            type="submit"
-            className="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 text-white font-semibold text-sm shadow-xl hover:scale-[1.01] transition-all duration-300 disabled:opacity-50"
-            disabled={uploading || !title || !description || (category === "artwork" && (!price || Number(price) <= 0))}
-          >
-            {uploading ? (
-              <span className="flex items-center justify-center">
-                <Loader2 className="animate-spin w-5 h-5 mr-2" /> Uploading...
-              </span>
-            ) : (
-              "Upload File"
+            {category === "artwork" && (
+              <div>
+                <label className="block text-sm font-semibold text-gray-300 mb-2">Price (PKR)</label>
+                <input
+                  type="number"
+                  className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                  placeholder="e.g. 3000"
+                  min={0}
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value === "" ? "" : Number(e.target.value))}
+                  required
+                />
+              </div>
             )}
-          </button>
-        </form>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-300 mb-2">Upload File</label>
+              <div className="glass border-2 border-dashed border-white/20 rounded-xl p-6 hover:border-purple-500/50 transition-all">
+                <IKUpload
+                  fileName={`${category}-${fileType}`}
+                  folder={categoryFolderPaths[category]}
+                  onError={handleError}
+                  onSuccess={handleSuccess}
+                  onUploadStart={handleStartUpload}
+                  accept={fileType === "video" ? "video/*" : "image/*"}
+                  onUploadProgress={(progressEvent) => {
+                    const progressPercent = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+                    setProgress(progressPercent);
+                  }}
+                  useUniqueFileName
+                  validateFile={validateFile}
+                  className="w-full text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-purple-600 file:to-pink-600 file:text-white hover:file:from-purple-700 hover:file:to-pink-700 file:cursor-pointer"
+                />
+              </div>
+            </div>
+
+            {progress > 0 && progress < 100 && (
+              <div className="w-full glass rounded-full h-3 overflow-hidden border border-white/20">
+                <div
+                  className="h-full bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 rounded-full transition-all duration-200"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            )}
+
+            {mediaUrl && (
+              <div className="glass rounded-xl p-4 border border-white/20">
+                {fileType === "image" ? (
+                  <Image 
+                    src={mediaUrl} 
+                    alt="Uploaded"
+                    width={500} 
+                    height={500} 
+                    className="w-full max-h-80 object-contain rounded-xl" 
+                  />
+                ) : (
+                  <video controls className="w-full max-h-80 rounded-xl">
+                    <source src={mediaUrl} type="video/mp4" />
+                  </video>
+                )}
+              </div>
+            )}
+
+            {error && (
+              <div className="glass border border-red-500/30 rounded-xl p-4 text-red-400 font-medium text-sm flex items-center gap-2">
+                <span>⚠️</span>
+                {error}
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold text-lg shadow-xl hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={uploading || !title || !description || (category === "artwork" && (!price || Number(price) <= 0))}
+            >
+              {uploading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="animate-spin w-5 h-5" /> 
+                  Uploading...
+                </span>
+              ) : (
+                "Upload & Share"
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

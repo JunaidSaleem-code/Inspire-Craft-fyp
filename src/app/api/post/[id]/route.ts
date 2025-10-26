@@ -14,9 +14,9 @@ type PostUpdatePayload = Partial<{
   mediaUrl: string;
 }>;
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await connectDB();
-  const  {id}  = params;
+  const  {id}  = await params;
   
   if (!isValidObjectId(id)) {
     return (NextResponse.json({ error: 'Invalid post ID' }, { status: 400 }),
@@ -64,9 +64,9 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 //   }
 // }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await connectDB();
-  const { id } = params;
+  const { id } = await params;
   console.log('id', id);
 
   if (!isValidObjectId(id)) {
@@ -87,9 +87,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   await connectDB();
-  const { id } = params;
+  const { id } = await params;
 
   if (!isValidObjectId(id)) {
     return NextResponse.json({ error: 'Invalid post ID' }, { status: 400 });

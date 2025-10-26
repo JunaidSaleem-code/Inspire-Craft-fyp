@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { formatDistanceToNow } from 'date-fns';
@@ -11,39 +11,29 @@ import { apiClient } from '@/lib/api-client';
 import { useNotification } from '@/components/Notification';
 import CommentSection from '@/components/CommentSection-DESKTOP-Q7VSBOC';
 import LikesDropdown from '@/components/LikeDropdown';
-import { Skeleton } from '@/components/ui/skeleton';
+import DetailSkeleton from '@/components/skeletons/DetailSkeleton';
 import { Like, Tutorial, User } from '@/app/types/page';
+import { useTutorial } from '@/hooks/useData';
+import ShareButton from '@/components/ShareButton';
 
 export default function TutorialPage() {
   const params = useParams();
-  const  id  = params?.id;
+  const  id  = params?.id?.toString();
   const router = useRouter();
   const { data: session } = useSession();
   const { showNotification } = useNotification();
 
-  const [tutorial, setTutorial] = useState<Tutorial | null>(null);
+  const { data: tutorial, isLoading: loading, mutate } = useTutorial(id);
   const [liked, setLiked] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [showComments, setShowComments] = useState(false);
   const [showLikesDropdown, setShowLikesDropdown] = useState(false);
 
-  const fetchTutorial = useCallback(async () => {
-    try {
-      const response = await apiClient.getTutorialById(id as string);
-      setTutorial(response);
-      console.log('response', response);
-      setLiked(response.likes?.some((like: Like) => like?.user?._id === session?.user?.id) || false);
-    } catch {
-      showNotification('Failed to fetch tutorial', 'error');
-    } finally {
-      setLoading(false);
-    }
-  }, [id, session, showNotification]);
-
   useEffect(() => {
-    if (id) fetchTutorial();
-  }, [id, fetchTutorial]);
+    if (tutorial && session?.user?.id) {
+      setLiked(tutorial.likes?.some((like: Like) => like?.user?._id === session?.user?.id) || false);
+    }
+  }, [tutorial, session]);
 
   const handleLikeToggle = async () => {
     if (!session?.user) return showNotification('Login to like!', 'error');
@@ -53,8 +43,8 @@ export default function TutorialPage() {
     setLiked((prev) => !prev);
 
     try {
-      await apiClient.likeContent(id as string, 'tutorial');
-      fetchTutorial();
+      await apiClient.likeContent(id!, 'tutorial');
+      mutate(); // Revalidate SWR cache
     } catch {
       showNotification('Error toggling like', 'error');
     } finally {
@@ -80,36 +70,29 @@ export default function TutorialPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto mt-10 p-6">
-        <Skeleton className="h-[500px] w-full rounded-xl mb-4" />
-        <Skeleton className="h-6 w-1/2 mb-2" />
-        <Skeleton className="h-4 w-full mb-4" />
-        <Skeleton className="h-4 w-3/4 mb-2" />
-        <Skeleton className="h-4 w-1/2" />
-      </div>
-    );
-  }
+  if (loading) return <DetailSkeleton type="tutorial" />;
 
   if (!tutorial || typeof tutorial !== 'object') {
-    return <div className="text-center mt-10 text-red-500">Tutorial not found</div>;
+    return <div className="min-h-screen bg-black pt-24 pb-24"><div className="text-center text-red-400">Tutorial not found</div></div>;
   }
 
   const author = tutorial.author as User;
   const isOwner = session?.user?.id === author?._id;
+  const likes = tutorial.likes || [];
 
   return (
-    <div className="bg-white shadow-xl rounded-xl overflow-hidden max-w-2xl mx-auto mt-4 mb-12 border">
-      {/* Media Section */}
-      <div className="w-full bg-black">
-        <video controls preload="metadata" className="w-full h-auto object-contain max-h-[600px]">
+    <div className="min-h-screen bg-black pt-24 pb-24">
+      <div className="max-w-2xl mx-auto px-4">
+        <div className="glass-strong rounded-2xl overflow-hidden border border-white/10">
+          {/* Media Section */}
+          <div className="w-full bg-black">
+        <video controls preload="metadata" className="w-full h-auto object-contain max-h-[300px] sm:max-h-[400px] md:max-h-[500px]">
           <source src={tutorial.mediaUrl} type="video/mp4" />
         </video>
       </div>
 
-      {/* Info Section */}
-      <div className="px-6 py-4">
+          {/* Info Section */}
+          <div className="px-4 py-3 bg-black/60">
         {/* Header with avatar, name, date */}
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center gap-3"
@@ -123,15 +106,15 @@ export default function TutorialPage() {
                 className="rounded-full object-cover"
               />
             </div>
-            <div
+                          <div
               className="cursor-pointer"
             >
-              <p className="font-semibold text-base flex items-center">
+              <p className="font-semibold text-base flex items-center text-white">
                 {author?.username || 'Anonymous'}
                 {author?.isVerified && <span className="ml-1 text-blue-500 text-sm">✔️</span>}
               </p>
               {tutorial.createdAt && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-400">
                   {formatDistanceToNow(new Date(String(tutorial.createdAt)))} ago
                 </p>
               )}
@@ -151,11 +134,11 @@ export default function TutorialPage() {
         </div>
 
         {/* Title & Description */}
-        <h1 className="text-2xl font-bold mb-2">{tutorial.title}</h1>
-        <p className="text-gray-700">{tutorial.description}</p>
+        <h1 className="text-2xl font-bold mb-2 text-white">{tutorial.title}</h1>
+        <p className="text-gray-300">{tutorial.description}</p>
 
         {/* Actions */}
-        <div className="flex items-center justify-between mt-4 gap-6">
+        <div className="flex items-center justify-between mt-3 gap-6">
           <div className="flex items-center space-x-4">
             <button
               onClick={handleLikeToggle}
@@ -168,7 +151,7 @@ export default function TutorialPage() {
             </button>
 
             <button onClick={() => setShowLikesDropdown((prev) => !prev)}>
-              <span className="text-lg text-gray-700 hover:text-black">{tutorial.likes?.length || 0}</span>
+              <span className="text-lg text-gray-300 hover:text-white">{tutorial.likes?.length || 0}</span>
             </button>
 
             {showLikesDropdown && (
@@ -179,9 +162,22 @@ export default function TutorialPage() {
               />
             )}
 
-            <button onClick={handleCommentClick} className="text-gray-500 hover:text-gray-700">
+            <button onClick={handleCommentClick} className="text-gray-400 hover:text-gray-200">
               <MessageCircle className="w-6 h-6" />
             </button>
+
+            <ShareButton
+              contentType="tutorial"
+              contentId={tutorial._id!.toString()}
+              title={tutorial.title}
+              description={tutorial.description}
+              mediaUrl={tutorial.mediaUrl}
+              author={{
+                id: author._id!.toString(),
+                username: author.username || 'Anonymous',
+                avatar: author.avatar
+              }}
+            />
           </div>
         </div>
 
@@ -191,6 +187,8 @@ export default function TutorialPage() {
             <CommentSection contentId={String(tutorial._id)} category="tutorial" />
           </div>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );

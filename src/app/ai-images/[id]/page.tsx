@@ -1,120 +1,108 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import  {apiClient} from "@/lib/api-client";
-import { Loader2 } from "lucide-react";
+import DetailSkeleton from "@/components/skeletons/DetailSkeleton";
 import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { useNotification } from "@/components/Notification";
-import { GeneratedImage, User } from "@/app/types/page";
 import Image from "next/image";
+import { useAIImage } from "@/hooks/useData";
 
 export default function AIImageDetailsPage() {
-  const [image, setImage] = useState< GeneratedImage>();
-  const [author, setAuthor] = useState<User>();
-  const [loading, setLoading] = useState(true);
   const { id } = useParams<{ id: string }>()!;
   const router = useRouter();
   const { data: session } = useSession();
   const { showNotification } = useNotification();
-
-  useEffect(() => {
-    if (!id) return;
-    const fetchImage = async () => {
-      try {
-        const data = await apiClient.getGeneratedImageById(id);
-          setImage(data);
-          setAuthor(data.user);
-      } catch {
-        showNotification("Failed to load image", "error");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchImage();
-  }, [id, showNotification]);
+  const { data: image, isLoading: loading, mutate } = useAIImage(id);
 
   const toggleVisibility = async () => {
     try {
       const data = await apiClient.toggleImageVisibility(image!._id!, !image!.isPublic);
       if (data.success) {
-        setImage((prev) => prev ? { ...prev, isPublic: !prev.isPublic } : prev);
-
+        mutate(); // Revalidate SWR cache
       }
     } catch {
       showNotification("Failed to toggle visibility", "error");
     }
   };
 
-  if (loading) return <Loader2 className="mx-auto animate-spin mt-10" />;
+  if (loading) return <DetailSkeleton type="artwork" />;
 
-  if (!image) return <p>Image not found</p>;
+  if (!image) return <div className="min-h-screen bg-black pt-24 pb-24 flex items-center justify-center"><p className="text-white">Image not found</p></div>;
 
   const user = image.user;
   const isOwner = session?.user?.id === user?._id;
 
   return (
-    <div className="max-w-4xl mx-auto mb-15 p-4 md:p-6 ">
-      <div className="rounded-2xl shadow-lg bg-white dark:bg-neutral-900 overflow-hidden">
-        {/* Image */}
-        <div className="relative aspect-[4/3]">
-          <Image
-            src={image?.mediaUrl}
-              width= {image.transformation?.width || "1024"}
-              height= {image.transformation?.height || '1024'}
-            alt={image.prompt}
-            loading="eager"
-            className="w-full h-auto rounded-t-2xl"
-          />
-        </div>
-
-        {/* Info */}
-        <div className="p-4 md:p-6">
-          {/* User */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-white text-sm font-bold"
-              >
-                <Image src={user?.avatar || ""} alt={user?.username || ""} width={40} height={40} className="w-10 h-10 rounded-full" />
-              </div>
-              <div
-                onClick={() => router.push(`/profile/${author?._id}`)}>
-                <p className="font-semibold text-base flex items-center">
-                  {user?.username || "Anonymous"}
-                  {user?.isVerified && <span className="ml-1 text-blue-500 text-sm">✔️</span>}
-                </p>
-                {image.createdAt && (
-  <p className="text-xs text-gray-500">
-    {formatDistanceToNow(new Date(image.createdAt))} ago
-  </p>
-)}
-
-              </div>
-            </div>
-            {/* <div className="text-sm text-gray-500">{user?.followers?.length || 0} followers</div> */}
+    <div className="min-h-screen bg-black pt-24 pb-24">
+      <div className="max-w-4xl mx-auto px-4">
+        <div className="glass-strong rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
+          {/* Image */}
+          <div className="relative aspect-[4/3] bg-black">
+            <Image
+              src={image?.mediaUrl}
+              width={image.transformation?.width || 1024}
+              height={image.transformation?.height || 1024}
+              alt={image.prompt}
+              loading="eager"
+              className="w-full h-full object-contain"
+            />
           </div>
 
-          {/* Prompt */}
-          <div className="mt-2">
-            <p className="text-gray-500 text-sm mb-1">Prompt:</p>
-            <p className="text-lg italic text-gray-800 dark:text-gray-100">{image.prompt}</p>
-          </div>
-
-          {/* Visibility toggle */}
-          {isOwner && (
-            <div className="mt-6">
-              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 mb-2">
-                Visibility:{" "}
-                <strong>{image.isPublic ? "🌐 Public" : "🔒 Private"}</strong>
+          {/* Info */}
+          <div className="p-6 bg-black/60">
+            {/* User */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3 cursor-pointer" onClick={() => router.push(`/profile/${user?._id}`)}>
+                <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-purple-500/50">
+                  {user?.avatar ? (
+                    <Image src={user.avatar} alt={user.username || ""} width={40} height={40} className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-sm">
+                      {user?.username?.[0]?.toUpperCase() || "?"}
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="font-semibold text-base flex items-center text-white">
+                    {user?.username || "Anonymous"}
+                    {user?.isVerified && <span className="ml-1 text-blue-500 text-sm">✔️</span>}
+                  </p>
+                  {image.createdAt && (
+                    <p className="text-xs text-gray-400">
+                      {formatDistanceToNow(new Date(image.createdAt))} ago
+                    </p>
+                  )}
+                </div>
               </div>
-              <Button onClick={toggleVisibility}>
-                Make {image.isPublic ? "Private" : "Public"}
-              </Button>
             </div>
-          )}
+
+            {/* Prompt */}
+            <div className="mt-4">
+              <p className="text-gray-400 text-sm mb-2">Prompt:</p>
+              <p className="text-lg italic text-white">{image.prompt}</p>
+            </div>
+
+            {/* Visibility toggle */}
+            {isOwner && (
+              <div className="mt-6 pt-6 border-t border-white/10">
+                <div className="flex items-center gap-2 text-sm text-gray-300 mb-4">
+                  Visibility:{" "}
+                  <strong className={image.isPublic ? "text-green-400" : "text-red-400"}>
+                    {image.isPublic ? "🌐 Public" : "🔒 Private"}
+                  </strong>
+                </div>
+                <Button 
+                  onClick={toggleVisibility}
+                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                >
+                  Make {image.isPublic ? "Private" : "Public"}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
