@@ -24,7 +24,7 @@ export default function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-white/10 backdrop-blur-xl bg-black/40">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-white/10 backdrop-blur-xl bg-black/80 shadow-[0_-4px_24px_rgba(0,0,0,0.5)]">
       <div className="flex justify-around items-center px-4 py-2">
         {navItems.map(({ href, icon: Icon, label }) => (
           <Link 

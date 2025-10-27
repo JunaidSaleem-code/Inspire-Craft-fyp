@@ -19,7 +19,7 @@ export default function TutorialCard({ tutorial }: Props) {
         whileHover={{ scale: 1.02 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="relative aspect-video overflow-hidden bg-black">
+        <div className="relative aspect-[4/3] overflow-hidden bg-black">
           <video 
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             preload="metadata"
