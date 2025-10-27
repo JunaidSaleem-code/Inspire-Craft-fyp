@@ -18,8 +18,8 @@ export default function AIGeneratePage() {
     try {
       const data = await apiClient.generateAIImage(prompt);
       if (data.success) setImage(data.image);
-    } catch (err) {
-      console.error("Failed to generate image:", err);
+    } catch {
+      // Error handled by notification system
     } finally {
       setLoading(false);
     }
@@ -32,8 +32,8 @@ export default function AIGeneratePage() {
       if (data.success) {
         setImage(prev => ({ ...prev!, isPublic: !prev!.isPublic, }));
       }
-    } catch (err) {
-      console.error("Failed to toggle visibility:", err);
+    } catch {
+      // Error handled by notification system
     }
   };
 

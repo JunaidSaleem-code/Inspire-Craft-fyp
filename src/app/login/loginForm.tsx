@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useNotification } from "../../components/Notification";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Mail, Lock, LogIn, UserPlus } from "lucide-react";
+import { Mail, Lock, LogIn, UserPlus, Eye, EyeOff } from "lucide-react";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -14,6 +14,7 @@ export default function LoginForm() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
 
@@ -29,15 +30,12 @@ export default function LoginForm() {
         callbackUrl,
       });
 
-      console.log('signin result:',result);
       setLoading(false);
       
       if (result?.error) {
         showNotification(result.error, "error");
       } else {
         const url = new URL(result?.url || "/", window.location.origin);
-        console.log('url.origin', window.location.origin);
-        console.log('url', url);
         window.location.href = url.toString(); // full reload
 
         router.refresh();
@@ -64,7 +62,7 @@ export default function LoginForm() {
         </div>
 
         {/* Login Card */}
-        <div className="relative glass-strong rounded-3xl p-8 border border-white/20 shadow-2xl">
+        <div className="relative glass-strong rounded-3xl p-6 sm:p-8 border border-white/20 shadow-2xl">
           {/* Header */}
           <div className="text-center mb-8">
             <motion.div
@@ -75,8 +73,8 @@ export default function LoginForm() {
             >
               <LogIn className="w-10 h-10 text-purple-400" />
             </motion.div>
-            <h1 className="text-4xl font-black text-white mb-2">Welcome Back</h1>
-            <p className="text-gray-400">Sign in to continue to InspireCraft</p>
+            <h1 className="text-3xl sm:text-4xl font-black text-white mb-2">Welcome Back</h1>
+            <p className="text-sm sm:text-base text-gray-400">Sign in to continue to InspireCraft</p>
           </div>
 
           {/* Form */}
@@ -109,15 +107,22 @@ export default function LoginForm() {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   id="password"
                   value={password}
                   autoComplete="current-password"
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="w-full pl-12 pr-4 py-3 glass border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                  className="w-full pl-12 pr-12 py-3 glass border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 

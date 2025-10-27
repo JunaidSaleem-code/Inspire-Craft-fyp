@@ -5,16 +5,13 @@ import { useSession } from "next-auth/react";
 import  {apiClient} from "@/lib/api-client";
 import { useNotification } from "@/components/Notification";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-import ArtworkCard from "@/components/ArtworkCard";
-import PostCard from "@/components/PostCard";
-import TutorialCard from "@/components/TutorialCard";
-import AIImageCard from "@/components/AIImageCard";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { Artwork, GeneratedImage, Post, Tutorial, User } from "@/app/types/page";
 import { motion } from "framer-motion";
-import { UserPlus, UserMinus, Edit, Sparkles } from "lucide-react";
+import { UserPlus, UserMinus, Edit, Loader2, Image as ImageIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import CardSkeleton from "@/components/skeletons/CardSkeleton";
 
@@ -40,6 +37,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id?: string 
 
   const [userProfile, setUserProfile] = useState<User>();
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowingLoading, setIsFollowingLoading] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
 
@@ -83,7 +81,8 @@ export default function ProfilePage({ params }: { params: Promise<{ id?: string 
     };
 
     fetchProfile();
-  }, [profileUserId, session?.user?.id, isOwnProfile, showNotification]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileUserId]);
 
   if (loading) {
     return (
@@ -134,94 +133,83 @@ export default function ProfilePage({ params }: { params: Promise<{ id?: string 
   };
 
   const handleFollowToggle = async () => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id || isFollowingLoading) return;
+
+    setIsFollowingLoading(true);
+    const previousState = isFollowing;
+    
+    // Optimistic update
+    setIsFollowing(!isFollowing);
+    setFollowerCount((prev) => prev + (!isFollowing ? 1 : -1));
 
     try {
       const res = await apiClient.toggleFollow(profileUserId!);
       setIsFollowing(res.isFollowing);
-      setFollowerCount((prev) => prev + (res.isFollowing ? 1 : -1));
-      showNotification('pressed follow', 'success');
+      setFollowerCount((prev) => prev + (res.isFollowing && !previousState ? 1 : !res.isFollowing && previousState ? -1 : 0));
     } catch {
+      // Revert on error
+      setIsFollowing(previousState);
+      setFollowerCount((prev) => prev + (previousState ? 1 : -1));
       showNotification("Failed to update follow status", "error");
+    } finally {
+      setIsFollowingLoading(false);
     }
   };
 
   if (!session) return <div>Please log in to view profiles.</div>;
 
-  const tabColors = {
-    artworks: "from-purple-600 to-pink-600",
-    posts: "from-pink-600 to-red-600",
-    tutorials: "from-orange-600 to-yellow-600",
-    aiImages: "from-green-600 to-teal-600",
-  };
-
   return (
-    <div className="min-h-screen bg-black pt-24 pb-20">
-      <div className="container mx-auto px-4 py-8">
-        {/* Profile Header */}
+    <div className="min-h-screen bg-black pt-20 pb-20">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Profile Header - Instagram Style */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-strong rounded-3xl p-8 mb-8 border border-white/20"
+          className="mb-8 px-4"
         >
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
-            {/* Avatar */}
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full blur-xl opacity-50"></div>
+          <div className="flex flex-col md:flex-row items-start gap-8">
+            {/* Avatar - Smaller size */}
+            <div className="relative mx-auto md:mx-0">
               <Image
                 src={userProfile?.avatar || "/default-avatar.png"}
                 alt="Profile"
-                width={160}
-                height={160}
-                className="relative w-40 h-40 rounded-full border-4 border-white/20 shadow-2xl object-cover"
+                width={96}
+                height={96}
+                className="w-24 h-24 rounded-full object-cover border-2 border-white/20"
               />
               {isOwnProfile && (
-                <div className="absolute bottom-2 right-2 p-2 glass rounded-full border border-white/20">
-                  <Sparkles className="w-4 h-4 text-purple-400" />
+                <div className="absolute -bottom-1 -right-1 p-1.5 glass rounded-full border-2 border-black">
+                  <Edit className="w-3 h-3 text-purple-400" />
                 </div>
               )}
             </div>
 
-            {/* Profile Info */}
-            <div className="flex-1 text-center md:text-left">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3">
-                {userProfile?.username}
-              </h2>
-              <p className="text-gray-400 text-lg mb-6 max-w-2xl">
-                {userProfile?.bio || "No bio provided."}
-              </p>
-
-              {/* Stats */}
-              <div className="flex flex-wrap gap-3 sm:gap-6 mb-6 justify-center md:justify-start">
-                <div className="glass rounded-xl px-6 py-3 border border-white/10">
-                  <div className="text-2xl font-bold text-white">{followerCount}</div>
-                  <div className="text-sm text-gray-400">Followers</div>
-                </div>
-                <div className="glass rounded-xl px-6 py-3 border border-white/10">
-                  <div className="text-2xl font-bold text-white">{followingCount}</div>
-                  <div className="text-sm text-gray-400">Following</div>
-                </div>
-                <div className="glass rounded-xl px-6 py-3 border border-white/10">
-                  <div className="text-2xl font-bold text-white">{artworks.length}</div>
-                  <div className="text-sm text-gray-400">Artworks</div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 justify-center md:justify-start">
+              {/* Profile Info */}
+              <div className="flex-1 w-full">
+                {/* Username and Action Button */}
+                <div className="flex items-center gap-2 sm:gap-4 mb-4 flex-wrap">
+                <h2 className="text-xl sm:text-2xl font-semibold text-white">
+                  {userProfile?.username}
+                </h2>
                 {!isOwnProfile ? (
                   <Button
                     onClick={handleFollowToggle}
+                    disabled={isFollowingLoading}
                     className={`${
                       isFollowing
-                        ? "glass border-white/30 text-white hover:bg-red-500/20"
-                        : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
-                    } px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105`}
+                        ? "px-6 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                        : "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    } font-semibold transition-all duration-300 active:scale-95`}
                   >
-                    {isFollowing ? (
+                    {isFollowingLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Loading...
+                      </>
+                    ) : isFollowing ? (
                       <>
                         <UserMinus className="w-4 h-4 mr-2" />
-                        Unfollow
+                        Following
                       </>
                     ) : (
                       <>
@@ -233,93 +221,151 @@ export default function ProfilePage({ params }: { params: Promise<{ id?: string 
                 ) : (
                   <Button
                     onClick={() => router.push("/profile/edit/" + userProfile?._id)}
-                    className="glass border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-full font-semibold transition-all duration-300 hover:scale-105"
+                    className="px-6 py-2 rounded-lg border border-white/20 text-white hover:bg-white/10 font-semibold transition-all duration-300"
                   >
                     <Edit className="w-4 h-4 mr-2" />
                     Edit Profile
                   </Button>
                 )}
               </div>
+
+              {/* Stats - Instagram Style */}
+              <div className="flex gap-4 sm:gap-8 mb-4">
+                <div>
+                  <span className="font-semibold text-white">
+                    {activeTab === "artworks" ? artworks.length : 
+                     activeTab === "posts" ? posts.length : 
+                     activeTab === "tutorials" ? tutorials.length : 
+                     aiImages.length}
+                  </span>
+                  <span className="text-gray-400 ml-1">posts</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-white">{followerCount}</span>
+                  <span className="text-gray-400 ml-1">followers</span>
+                </div>
+                <div>
+                  <span className="font-semibold text-white">{followingCount}</span>
+                  <span className="text-gray-400 ml-1">following</span>
+                </div>
+              </div>
+
+              {/* Bio */}
+              {userProfile?.bio && (
+                <div className="mb-4">
+                  <p className="text-gray-300">{userProfile.bio}</p>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
 
-        {/* Tabs */}
+        {/* Tabs - Instagram Style */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="flex justify-center gap-3 mb-12 flex-wrap"
+          className="border-t border-white/10 mb-4"
         >
-          {TABS.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => handleTabClick(tab)}
-              className={`px-6 py-3 rounded-full font-semibold transition-all duration-300 ${
-                activeTab === tab
-                  ? `bg-gradient-to-r ${tabColors[tab]} text-white shadow-lg scale-105`
-                  : "glass border border-white/20 text-gray-300 hover:border-white/40 hover:scale-105"
-              }`}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
+          <div className="flex justify-center">
+            {TABS.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => handleTabClick(tab)}
+                className={`px-4 py-4 font-semibold transition-all duration-300 border-t-2 ${
+                  activeTab === tab
+                    ? "border-white text-white"
+                    : "border-transparent text-gray-400 hover:text-white"
+                }`}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1).replace(/([A-Z])/g, ' $1')}
+              </button>
+            ))}
+          </div>
         </motion.div>
 
-        {/* Tab Content */}
+        {/* Tab Content - Instagram Grid Style */}
         <motion.div
           key={activeTab}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8"
+          className="grid grid-cols-2 sm:grid-cols-3 gap-1 sm:gap-2"
         >
           {activeTab === "artworks" &&
-            artworks.map((art, index) => (
-              <motion.div
-                key={art._id?.toString()}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <ArtworkCard artwork={art} />
-              </motion.div>
+            artworks.map((art) => (
+              <Link key={art._id?.toString()} href={`/artwork/${art._id}`}>
+                <div className="aspect-square relative group overflow-hidden cursor-pointer">
+                  <Image
+                    src={art.mediaUrl}
+                    alt={art.title}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="flex gap-4 text-white">
+                      <span className="font-semibold">{art.title}</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
             ))}
 
           {activeTab === "posts" &&
-            posts.map((post, index) => (
-              <motion.div
-                key={post._id!.toString()}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <PostCard post={post} />
-              </motion.div>
+            posts.map((post) => (
+              <Link key={post._id!.toString()} href={`/post/${post._id}`}>
+                <div className="aspect-square relative group overflow-hidden cursor-pointer">
+                  <Image
+                    src={post.mediaUrl}
+                    alt={post.title}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="flex gap-4 text-white">
+                      <span className="font-semibold">{post.title}</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
             ))}
 
           {activeTab === "tutorials" &&
-            tutorials.map((tutorial, index) => (
-              <motion.div
-                key={tutorial._id!.toString()}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <TutorialCard tutorial={tutorial} />
-              </motion.div>
+            tutorials.map((tutorial) => (
+              <Link key={tutorial._id!.toString()} href={`/tutorial/${tutorial._id}`}>
+                <div className="aspect-square relative group overflow-hidden cursor-pointer">
+                  <Image
+                    src={tutorial.mediaUrl}
+                    alt={tutorial.title}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="flex gap-4 text-white">
+                      <span className="font-semibold">{tutorial.title}</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
             ))}
 
           {activeTab === "aiImages" &&
-            aiImages.map((image, index) => (
-              <motion.div
-                key={image._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <AIImageCard image={image} />
-              </motion.div>
+            aiImages.map((image) => (
+              <Link key={image._id} href={`/ai-images/${image._id}`}>
+                <div className="aspect-square relative group overflow-hidden cursor-pointer">
+                  <Image
+                    src={image.mediaUrl}
+                    alt={image.prompt}
+                    fill
+                    className="object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                    <div className="flex gap-4 text-white">
+                      <span className="font-semibold">AI Generated</span>
+                    </div>
+                  </div>
+                </div>
+              </Link>
             ))}
         </motion.div>
 
@@ -334,7 +380,7 @@ export default function ProfilePage({ params }: { params: Promise<{ id?: string 
             className="text-center py-20"
           >
             <div className="w-24 h-24 mx-auto mb-6 glass rounded-full flex items-center justify-center border border-white/20">
-              <Sparkles className="w-12 h-12 text-gray-500" />
+              <ImageIcon className="w-12 h-12 text-gray-500" />
             </div>
             <p className="text-gray-400 text-xl">No {activeTab} yet</p>
             <p className="text-gray-500 text-sm mt-2">

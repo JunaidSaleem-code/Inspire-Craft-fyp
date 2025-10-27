@@ -64,13 +64,11 @@ export default function UploadPage() {
   };
 
   const handleStartUpload = () => {
-    console.log("start upload");
     setUploading(true);
     setError(null);
   };
 
   const handleSuccess = (res: IKUploadResponse) => {
-    console.log('in success', res);
     setUploading(false);
     setError(null);
     setMediaUrl(res.url);
@@ -79,7 +77,6 @@ export default function UploadPage() {
   };
 
   const handleError = (err: { message: string }) => {
-    console.log('err', err);
     setError(err.message || "Upload failed.");
     setUploading(false);
   };
@@ -107,9 +104,6 @@ export default function UploadPage() {
         data.price = parsedPrice;
         data.currency = "PKR";
       }
-      
-      console.log('DATA at frontend Upload form',data);
-
       await apiClient.uploadFile(data, category);
       showNotification(`${category.charAt(0).toUpperCase() + category.slice(1)} uploaded successfully!`, "success");
 
@@ -134,18 +128,18 @@ export default function UploadPage() {
 
   return (
     <div className="min-h-screen bg-black pt-24 pb-20">
-      <div className="container mx-auto px-4 py-10 max-w-3xl">
-        <div className="glass-strong border border-white/20 p-8 rounded-3xl shadow-2xl">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-3xl">
+        <div className="glass-strong border border-white/20 p-6 sm:p-8 rounded-3xl shadow-2xl">
           <div className="text-center mb-8">
-            <h1 className="text-5xl font-black text-white mb-2">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-2">
               <span className="gradient-text">Upload Your Art</span>
             </h1>
-            <p className="text-gray-400">Share your creativity with the world</p>
+            <p className="text-gray-400 text-sm sm:text-base">Share your creativity with the world</p>
           </div>
 
           <div className="flex gap-4 mb-6">
             <select
-              className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all bg-black/50"
+              className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all bg-black/50 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 20 20%22%3E%3Cpath stroke=%22%23958b8f%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%221.5%22 d=%22M6 8l4 4 4-4%22/%3E%3C/svg%3E')] bg-[length:1.5em_1.5em] bg-[right_0.75rem_center] bg-no-repeat pr-12 hover:border-white/30"
               value={category}
               onChange={(e) => {
                 const newCategory = e.target.value as typeof category;
@@ -153,19 +147,19 @@ export default function UploadPage() {
                 setFileType(newCategory === "tutorial" ? "video" : "image");
               }}
             >
-              <option value="post" className="bg-black">Post</option>
-              <option value="tutorial" className="bg-black">Tutorial</option>
-              <option value="artwork" className="bg-black">Artwork</option>
+              <option value="post" className="bg-gray-900 text-white">Post</option>
+              <option value="tutorial" className="bg-gray-900 text-white">Tutorial</option>
+              <option value="artwork" className="bg-gray-900 text-white">Artwork</option>
             </select>
 
             {category !== "tutorial" && (
               <select
-                className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all bg-black/50"
+                className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all bg-black/50 cursor-pointer appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 20 20%22%3E%3Cpath stroke=%22%23958b8f%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%221.5%22 d=%22M6 8l4 4 4-4%22/%3E%3C/svg%3E')] bg-[length:1.5em_1.5em] bg-[right_0.75rem_center] bg-no-repeat pr-12 hover:border-white/30"
                 value={fileType}
                 onChange={(e) => setFileType(e.target.value as typeof fileType)}
               >
-                <option value="image" className="bg-black">Image</option>
-                <option value="video" className="bg-black">Video</option>
+                <option value="image" className="bg-gray-900 text-white">Image</option>
+                <option value="video" className="bg-gray-900 text-white">Video</option>
               </select>
             )}
           </div>

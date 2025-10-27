@@ -5,7 +5,7 @@ import { EmojiPicker } from "./EmojiPicker";
 import { io, Socket } from "socket.io-client";
 import type { User } from "../types/index";
 import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Search, Paperclip, Smile, Send, MessageCircle, Loader2 } from "lucide-react";
 import SharedContentPreview from "./SharedContentPreview";
 
 interface Conversation {
@@ -66,6 +66,8 @@ export default function ChatListWithWindow() {
   const [dmResults, setDmResults] = useState<User[]>([]);
   const [dmSelected, setDmSelected] = useState<string>("");
   const [showSidebar, setShowSidebar] = useState(true);
+  const [conversationSearch, setConversationSearch] = useState("");
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
 
   useEffect(() => {
     if (session?.user?.id && !socket) {
@@ -117,22 +119,29 @@ export default function ChatListWithWindow() {
   };
 
   const handleSendMessage = async () => {
-    if (!message.trim() || !selectedConversation) return;
+    if (!message.trim() || !selectedConversation || isSendingMessage) return;
+    
+    setIsSendingMessage(true);
     const formData = new FormData();
     formData.append("conversationId", selectedConversation._id);
     formData.append("content", message);
     formData.append("type", "text");
-    const res = await fetch("/api/messages/message", {
-      method: "POST",
-      headers: { "x-user-id": session!.user!.id },
-      body: formData,
-    });
-    if (res.ok) {
-      setMessage("");
-      const msg = await res.json();
-      setMessages(prev => [...prev, msg]);
-      if (socket) socket.emit("send-message", { conversationId: selectedConversation._id, message: msg });
-      scrollToBottom();
+    
+    try {
+      const res = await fetch("/api/messages/message", {
+        method: "POST",
+        headers: { "x-user-id": session!.user!.id },
+        body: formData,
+      });
+      if (res.ok) {
+        setMessage("");
+        const msg = await res.json();
+        setMessages(prev => [...prev, msg]);
+        if (socket) socket.emit("send-message", { conversationId: selectedConversation._id, message: msg });
+        scrollToBottom();
+      }
+    } finally {
+      setIsSendingMessage(false);
     }
   };
 
@@ -228,45 +237,79 @@ export default function ChatListWithWindow() {
   if (!session?.user?.id) return <div className="p-8 text-center text-white">Please log in to use chat.</div>;
 
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100vh-12rem)] bg-black rounded-2xl overflow-hidden border border-white/10">
+    <div className="flex flex-col md:flex-row h-[calc(100vh-12rem)] md:h-[calc(100vh-8rem)] bg-black rounded-2xl overflow-hidden border border-white/10">
       {/* Conversation List */}
-      <div className={`w-full md:w-80 glass-strong border-r border-white/10 flex flex-col transition-all duration-300 ${
+      <div className={`w-full md:w-80 border-r border-white/10 flex flex-col transition-all duration-300 ${
         !showSidebar && selectedConversation ? 'hidden md:flex' : 'flex'
       }`}>
-        <div className="p-4 border-b border-white/10 flex justify-between items-center bg-black/40">
-          <span className="font-bold text-lg text-white">Chats</span>
-          <div className="flex gap-2">
+        {/* Header with Search */}
+        <div className="p-4 border-b border-white/10 bg-black/60">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-xl text-white">Messages</h2>
             <button 
-              className="text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium"
+              className="text-white hover:text-purple-400 transition-colors"
               onClick={() => setShowNewDM(true)}
             >
-              New
-            </button>
-            <button 
-              className="text-purple-400 hover:text-purple-300 transition-colors text-sm font-medium"
-              onClick={() => setShowNewGroup(true)}
-            >
-              + Group
+              <Send className="w-5 h-5" />
             </button>
           </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search"
+              value={conversationSearch}
+              onChange={(e) => setConversationSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 glass rounded-xl text-white placeholder-gray-500 border border-white/20 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 text-sm"
+            />
+          </div>
         </div>
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-          {conversations.map(conv => (
-            <div 
-              key={conv._id} 
-              className={`p-3 cursor-pointer border-b border-white/5 transition-colors hover:bg-white/5 ${
-                selectedConversation?._id === conv._id ? "bg-white/10" : ""
-              }`} 
-              onClick={() => setSelectedConversation(conv)}
-            >
-              <div className="font-semibold text-white text-sm">
-                {conv.name || conv.participants.find((u: User) => u._id !== session.user.id)?.username || "DM"}
-              </div>
-              <div className="text-xs text-gray-400 truncate mt-1">
-                {conv.lastMessage?.content || "No messages yet"}
-              </div>
-            </div>
-          ))}
+        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent bg-black/40">
+          {conversations
+            .filter(conv => {
+              if (!conversationSearch) return true;
+              const name = conv.name || conv.participants.find((u: User) => u._id !== session.user.id)?.username || "DM";
+              return name.toLowerCase().includes(conversationSearch.toLowerCase());
+            })
+            .map(conv => {
+              const otherUser = conv.participants.find((u: User) => u._id !== session.user.id);
+              const convAvatar = conv.avatar || otherUser?.avatar || "/default-avatar.png";
+              const convName = conv.name || otherUser?.username || "DM";
+              return (
+                <div 
+                  key={conv._id} 
+                  className={`flex items-center gap-3 p-3 cursor-pointer border-b border-white/5 transition-all hover:bg-white/5 active:scale-98 active:opacity-90 ${
+                    selectedConversation?._id === conv._id ? "bg-white/10" : ""
+                  }`} 
+                  onClick={() => {
+                    setSelectedConversation(conv);
+                    setShowSidebar(false);
+                  }}
+                >
+                  <div className="relative flex-shrink-0">
+                    <Image
+                      src={convAvatar}
+                      alt={convName}
+                      className="w-12 h-12 rounded-full object-cover"
+                      width={48}
+                      height={48}
+                    />
+                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-black"></div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-white text-sm truncate">
+                      {convName}
+                    </div>
+                    <div className="text-xs text-gray-400 truncate">
+                      {conv.lastMessage?.content || "No messages yet"}
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0 text-xs text-gray-500">
+                    {conv.lastMessage?.timestamp && new Date(conv.lastMessage.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                  </div>
+                </div>
+              );
+            })}
         </div>
       </div>
       
@@ -276,7 +319,7 @@ export default function ChatListWithWindow() {
       }`}>
         {selectedConversation ? (
           <>
-            <div className="p-4 border-b border-white/10 font-semibold flex items-center gap-2 bg-black/40 text-white">
+            <div className="p-4 border-b border-white/10 flex items-center gap-3 bg-black/60">
               <button
                 onClick={() => {
                   setSelectedConversation(null);
@@ -284,11 +327,28 @@ export default function ChatListWithWindow() {
                 }}
                 className="md:hidden p-1 hover:bg-white/10 rounded transition-colors"
               >
-                <ArrowLeft className="w-5 h-5" />
+                <ArrowLeft className="w-5 h-5 text-white" />
               </button>
-              <span>
-                {selectedConversation.name || selectedConversation.participants.find((u: User) => u._id !== session.user.id)?.username || "DM"}
-              </span>
+              {(() => {
+                const otherUser = selectedConversation.participants.find((u: User) => u._id !== session.user.id);
+                const avatar = selectedConversation.avatar || otherUser?.avatar || "/default-avatar.png";
+                const name = selectedConversation.name || otherUser?.username || "DM";
+                return (
+                  <>
+                    <Image
+                      src={avatar}
+                      alt={name}
+                      className="w-10 h-10 rounded-full object-cover"
+                      width={40}
+                      height={40}
+                    />
+                    <div className="flex-1">
+                      <div className="font-semibold text-white">{name}</div>
+                      <div className="text-xs text-gray-400">Active now</div>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
               {uniqueMessages.length > 0 ? uniqueMessages.map((msg) => {
@@ -314,12 +374,11 @@ export default function ChatListWithWindow() {
                       />
                     )}
                     <div className={`flex flex-col ${msg.sharedContent ? 'max-w-full' : 'max-w-[70%]'}`}>
-                      <div className={`rounded-xl px-4 py-2 ${
+                      <div className={`rounded-2xl px-4 py-2.5 ${
                         isMine 
-                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white" 
+                          ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg" 
                           : "glass border border-white/20 text-white"
                       }`}>
-                        {senderUsername && <span className="text-xs text-gray-300 mb-1">{senderUsername}</span>}
                         {msg.sharedContent ? (
                           <SharedContentPreview
                             type={msg.sharedContent.type}
@@ -352,40 +411,55 @@ export default function ChatListWithWindow() {
               )}
               <div ref={messagesEndRef} />
             </div>
-            <div className="p-4 border-t border-white/10 bg-black/40">
+            <div className="p-4 border-t border-white/10 bg-black/60 relative">
               <div className="flex items-center gap-2">
                 <button 
                   onClick={() => setShowEmojiPicker(v => !v)} 
-                  className="text-2xl hover:scale-110 transition-transform"
+                  className="p-2 hover:bg-white/10 rounded-full transition-colors"
+                  type="button"
                 >
-                  😊
+                  <Smile className="w-5 h-5 text-gray-400" />
                 </button>
                 {showEmojiPicker && (
-                  <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-10">
+                  <div className="absolute bottom-20 left-4 z-10">
                     <EmojiPicker onEmojiSelect={e => setMessage(m => m + e)} />
                   </div>
                 )}
+                <button className="p-2 hover:bg-white/10 rounded-full transition-colors" type="button">
+                  <Paperclip className="w-5 h-5 text-gray-400" />
+                </button>
                 <input
-                  className="flex-1 px-4 py-3 glass border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 text-sm md:text-base"
+                  className="flex-1 px-4 py-3 glass border border-white/20 rounded-full text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 text-sm md:text-base"
                   value={message}
                   onChange={e => setMessage(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter") handleSendMessage(); }}
-                  placeholder="Type a message..."
+                  placeholder="Message..."
                 />
-                <button 
-                  onClick={handleSendMessage} 
-                  className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-6 py-3 rounded-xl font-semibold transition-all hover:scale-105"
-                >
-                  Send
-                </button>
+                {message.trim() && (
+                  <button 
+                    onClick={handleSendMessage}
+                    disabled={isSendingMessage}
+                    className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-full transition-all disabled:opacity-50 disabled:cursor-not-allowed active:scale-90"
+                    type="button"
+                  >
+                    {isSendingMessage ? (
+                      <Loader2 className="w-5 h-5 text-white animate-spin" />
+                    ) : (
+                      <Send className="w-5 h-5 text-white" />
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-gray-400">
+          <div className="flex-1 flex items-center justify-center bg-black/60">
             <div className="text-center">
-              <div className="text-6xl mb-4">💬</div>
-              <p>Select a conversation to start messaging</p>
+              <div className="w-20 h-20 mx-auto mb-6 glass rounded-full flex items-center justify-center border border-white/20">
+                <MessageCircle className="w-10 h-10 text-purple-400" />
+              </div>
+              <p className="text-xl font-semibold text-white mb-2">Your messages</p>
+              <p className="text-gray-400">Select a conversation to start messaging</p>
             </div>
           </div>
         )}

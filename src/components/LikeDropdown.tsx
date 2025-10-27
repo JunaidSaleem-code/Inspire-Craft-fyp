@@ -37,18 +37,18 @@ const LikesDropdown = ({
     showLikesDropdown && (
       <div
         ref={dropdownRef}
-        className="absolute bg-white shadow-lg p-2 rounded-lg mt-2 w-48 max-h-60 overflow-y-auto z-10 border"
+        className="absolute glass border border-white/20 shadow-lg p-2 rounded-lg mt-2 w-48 max-h-60 overflow-y-auto z-50"
       >
         <div className="flex justify-between items-center mb-2">
-          <span className="font-semibold text-sm">Liked By</span>
+          <span className="font-semibold text-sm text-white">Liked By</span>
           <X
-            className="w-4 h-4 cursor-pointer"
+            className="w-4 h-4 cursor-pointer text-white"
             onClick={() => setShowLikesDropdown(false)}
           />
         </div>
         <div>
           {likes?.map((like: Like) => (
-            <div key={like._id} className="text-sm py-1">
+            <div key={like._id} className="text-sm py-1 text-white">
               {like.user?.username}
             </div>
           ))}

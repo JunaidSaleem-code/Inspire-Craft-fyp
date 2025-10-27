@@ -61,8 +61,7 @@ const SearchComponent = () => {
       setPosts(searchResults.posts || []);
       setTutorials(searchResults.tutorials || []);
       setGeneratedImages(searchResults.generatedImages || []);
-    } catch (error) {
-      console.error(error);
+    } catch {
       setError("An error occurred while fetching search results");
     } finally {
       setLoading(false);
@@ -113,12 +112,12 @@ const SearchComponent = () => {
           </div>
 
           {/* Filter Pills */}
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 px-4">
             {filterOptions.map((option) => (
               <button
                 key={option.value}
                 onClick={() => setFilter(option.value as typeof filter)}
-                className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 ${
+                className={`px-4 sm:px-6 py-2 text-sm sm:text-base rounded-full font-semibold transition-all duration-300 ${
                   filter === option.value
                     ? `bg-gradient-to-r ${option.color} text-white shadow-lg scale-105`
                     : "glass border border-white/20 text-gray-300 hover:border-white/40 hover:scale-105"
@@ -329,7 +328,7 @@ const SearchComponent = () => {
                     setPage((p) => Math.max(1, p - 1));
                     handleSearch();
                   }}
-                  className="glass border-white/30 text-white hover:bg-white/10 disabled:opacity-30"
+                  className="glass border-white/30 text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <ChevronLeft className="w-5 h-5 mr-1" />
                   Previous
@@ -339,11 +338,12 @@ const SearchComponent = () => {
                 </span>
                 <Button
                   variant="outline"
+                  disabled={artworks.length < 10 && posts.length < 10 && tutorials.length < 10 && generatedImages.length < 10}
                   onClick={() => {
                     setPage((p) => p + 1);
                     handleSearch();
                   }}
-                  className="glass border-white/30 text-white hover:bg-white/10"
+                  className="glass border-white/30 text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   Next
                   <ChevronRight className="w-5 h-5 ml-1" />

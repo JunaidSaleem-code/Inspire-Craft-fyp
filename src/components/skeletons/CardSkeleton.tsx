@@ -8,12 +8,12 @@ interface CardSkeletonProps {
 
 export default function CardSkeleton({ 
   count = 1,
-  aspectRatio = 'square',
-  showContent = true 
+  aspectRatio = 'video',
+  showContent = false 
 }: CardSkeletonProps) {
   const aspectRatioClasses = {
     square: 'aspect-square',
-    video: 'aspect-video',
+    video: 'aspect-[4/3]',
     portrait: 'aspect-[3/4]'
   };
 

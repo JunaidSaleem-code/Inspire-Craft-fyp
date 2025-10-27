@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { IKUpload } from "imagekitio-next";
 import { IKUploadResponse } from "imagekitio-next/dist/types/components/IKUpload/props";
-import { Loader2 } from "lucide-react";
+import { Loader2, ArrowLeft, Camera, X } from "lucide-react";
 import Image from "next/image";
 
 export default function EditProfilePage({ params }: { params: Promise<{ userId: string }> }) {
@@ -22,6 +22,10 @@ export default function EditProfilePage({ params }: { params: Promise<{ userId: 
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [userId, setUserId] = useState<string>("");
+  const [hasChanges, setHasChanges] = useState(false);
+  const [originalUsername, setOriginalUsername] = useState("");
+  const [originalBio, setOriginalBio] = useState("");
+  const [originalAvatar, setOriginalAvatar] = useState("");
 
   useEffect(() => {
     async function getParams() {
@@ -37,9 +41,16 @@ export default function EditProfilePage({ params }: { params: Promise<{ userId: 
     const fetchProfile = async () => {
       try {
         const data = await apiClient.getUserById(userId);
-        setUsername(data.username || "");
-        setBio(data.bio || "");
-        setAvatar(data.avatar || "");
+        const uname = data.username || "";
+        const ubio = data.bio || "";
+        const uavatar = data.avatar || "";
+        
+        setUsername(uname);
+        setBio(ubio);
+        setAvatar(uavatar);
+        setOriginalUsername(uname);
+        setOriginalBio(ubio);
+        setOriginalAvatar(uavatar);
       } catch {
         showNotification("Failed to load profile", "error");
       }
@@ -47,6 +58,11 @@ export default function EditProfilePage({ params }: { params: Promise<{ userId: 
 
     fetchProfile();
   }, [userId, showNotification]);
+
+  useEffect(() => {
+    const changed = username !== originalUsername || bio !== originalBio || avatar !== originalAvatar;
+    setHasChanges(changed);
+  }, [username, bio, avatar, originalUsername, originalBio, originalAvatar]);
 
   const validateImageFile = (file: File) => {
     const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
@@ -91,71 +107,143 @@ export default function EditProfilePage({ params }: { params: Promise<{ userId: 
   };
 
   return (
-    <div className="container mx-auto px-4 py-10 max-w-2xl">
-      <div className="bg-gradient-to-tr from-white via-indigo-50 to-purple-100 border border-purple-200 p-8 rounded-3xl shadow-xl">
-        <h1 className="text-3xl font-bold text-center text-indigo-700 mb-6">✏️ Edit Your Profile</h1>
+    <div className="min-h-screen bg-black pt-20 pb-20">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <button
+            onClick={() => router.back()}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
+          >
+            <ArrowLeft className="w-5 h-5" />
+            Back
+          </button>
+          <h1 className="text-3xl font-bold text-white">Edit Profile</h1>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-indigo-600 mb-1">Name</label>
-            <Input value={username} onChange={(e) => setUsername(e.target.value)} required />
-          </div>
+        {/* Form Container */}
+        <div className="glass-strong rounded-2xl p-6 md:p-8 border border-white/20">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-8">
+              {/* Avatar Section */}
+              <div className="w-full md:w-auto">
+                <label className="block text-sm font-medium text-gray-300 mb-3">Avatar</label>
+                <div className="relative group">
+                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white/20">
+                    <Image
+                      src={avatar || "/default-avatar.png"}
+                      alt="Avatar preview"
+                      width={128}
+                      height={128}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 rounded-full flex items-center justify-center transition-opacity cursor-pointer">
+                    <Camera className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+                
+                {/* Upload Component */}
+                <div className="mt-4">
+                  <IKUpload
+                    fileName={`avatar-${userId}`}
+                    folder="/avatars"
+                    onUploadStart={handleAvatarUploadStart}
+                    onSuccess={handleAvatarSuccess}
+                    onError={handleAvatarError}
+                    useUniqueFileName
+                    validateFile={validateImageFile}
+                    accept="image/*"
+                    onUploadProgress={(e) => {
+                      const percent = Math.round((e.loaded / e.total) * 100);
+                      setProgress(percent);
+                    }}
+                    className="glass border border-white/20 rounded-xl text-white hover:bg-white/10 cursor-pointer px-4 py-2 text-sm transition-all"
+                  />
+                </div>
 
-          <div>
-            <label className="block text-sm font-medium text-indigo-600 mb-1">Bio</label>
-            <textarea
-              className="textarea textarea-bordered w-full"
-              rows={3}
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-            />
-          </div>
+                {/* Progress Bar */}
+                {progress > 0 && progress < 100 && (
+                  <div className="mt-3 w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-purple-600 to-pink-600 rounded-full transition-all duration-300"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                )}
+                
+                {error && (
+                  <div className="mt-2 text-red-500 text-xs flex items-center gap-1">
+                    <X className="w-4 h-4" />
+                    {error}
+                  </div>
+                )}
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium text-indigo-600 mb-1">Avatar</label>
-            <IKUpload
-              fileName={`avatar-${userId}`}
-              folder="/avatars"
-              onUploadStart={handleAvatarUploadStart}
-              onSuccess={handleAvatarSuccess}
-              onError={handleAvatarError}
-              useUniqueFileName
-              validateFile={validateImageFile}
-              accept="image/*"
-              onUploadProgress={(e) => {
-                const percent = Math.round((e.loaded / e.total) * 100);
-                setProgress(percent);
-              }}
-              className="file-input file-input-bordered w-full"
-            />
-          </div>
+              {/* Form Fields */}
+              <div className="flex-1 w-full space-y-6">
+                {/* Username */}
+                <div>
+                  <label htmlFor="username" className="block text-sm font-medium text-gray-300 mb-2">
+                    Username
+                  </label>
+                  <Input
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    className="w-full"
+                    maxLength={30}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">{username.length}/30</p>
+                </div>
 
-          {progress > 0 && progress < 100 && (
-            <div className="mt-2 w-full bg-gray-300 rounded h-2 overflow-hidden">
-              <div
-                className="h-2 bg-indigo-500 rounded transition-all duration-200"
-                style={{ width: `${progress}%` }}
-              />
+                {/* Bio */}
+                <div>
+                  <label htmlFor="bio" className="block text-sm font-medium text-gray-300 mb-2">
+                    Bio
+                  </label>
+                  <textarea
+                    id="bio"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    rows={4}
+                    maxLength={150}
+                    className="w-full px-4 py-3 glass border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all resize-none"
+                    placeholder="Tell us about yourself..."
+                  />
+                  <p className="mt-1 text-xs text-gray-500">{bio.length}/150</p>
+                </div>
+              </div>
             </div>
-          )}
 
-          {avatar && (
-            <div className="mt-4">
-              <Image
-                src={avatar}
-                alt="Avatar"
-                className="w-32 h-32 rounded-full object-cover border border-gray-300 shadow"
-              />
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4 border-t border-white/10">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={uploading || !hasChanges}
+                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
+              </Button>
             </div>
-          )}
-
-          {error && <div className="text-red-500 text-sm">⚠️ {error}</div>}
-
-          <Button type="submit" disabled={uploading} className="w-full flex items-center justify-center gap-2">
-            {uploading && <Loader2 className="animate-spin h-4 w-4" />}
-            {uploading ? "Updating..." : "Update Profile"}
-          </Button>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

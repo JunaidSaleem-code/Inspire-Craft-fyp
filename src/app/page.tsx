@@ -16,7 +16,7 @@ export default function HomePage() {
   const { data: tutorials, isLoading: loadingTutorials } = useTutorials();
 
   return (
-    <div className="min-h-screen bg-black pt-24">
+    <div className="min-h-screen bg-black pt-16">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         {/* Background gradient */}

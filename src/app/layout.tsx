@@ -8,6 +8,14 @@ import MobileNav from "@/components/MobileNav";
 export const metadata: Metadata = {
   title: "InspireCraft - Artist Portfolio & Gallery",
   description: "Discover and showcase amazing artworks, creations, and artistic inspiration",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", type: "image/x-icon" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({

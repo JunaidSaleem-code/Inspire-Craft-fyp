@@ -32,7 +32,7 @@ export default function MobileNav() {
             href={href} 
             className={clsx(
               "flex flex-col items-center px-3 py-2 rounded-lg transition-all duration-300",
-              pathname?.startsWith(href)
+              (href === "/" ? pathname === "/" : pathname?.startsWith(href))
                 ? "text-purple-400"
                 : "text-gray-400 hover:text-gray-200"
             )}
@@ -41,7 +41,7 @@ export default function MobileNav() {
             <span className="text-[11px] sm:text-xs font-medium">
               {label}
             </span>
-            {pathname?.startsWith(href) && (
+            {(href === "/" ? pathname === "/" : pathname?.startsWith(href)) && (
               <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-purple-400 rounded-full"></div>
             )}
           </Link>
